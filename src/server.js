@@ -1,6 +1,7 @@
 const express = require('express');
 const connectDB = require('./config/db');
 const livePrices = require('./utils/livePrices');
+const cors = require('cors');
 require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const mainRoutes = require('./routes/mainRoutes');
@@ -15,6 +16,7 @@ const actionsRoutes = require('./routes/actionsRoute')
 
 const app = express();
 //Middleware
+app.use(cors());
 app.use(express.json());
 
 
