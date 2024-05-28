@@ -23,6 +23,15 @@ const loginUser = async (req, res) => {
             });
         }
 
+        // Check if the user's email is verified
+        if (!user.emailVerified) {
+            return res.status(403).json({
+                status: 'error',
+                code: 403,
+                data: 'Email not verified'
+            });
+        }
+
         // Update login history
         const { ip, headers } = req;
         const ipAddress = ip || headers['x-forwarded-for'] || headers['x-real-ip'] || req.connection.remoteAddress;
@@ -49,7 +58,7 @@ const loginUser = async (req, res) => {
         res.status(200).json({
             status: 'success',
             code: 200,
-            data: { jwt: token }
+            data: { jwt: token, message: "Login successful" }
         });
     } catch (error) {
         // Handle error
@@ -65,3 +74,4 @@ const loginUser = async (req, res) => {
 module.exports = {
     loginUser
 };
+

@@ -11,7 +11,7 @@ const accountDetailsRouters = require('./routes/accountDetailsRoutes')
 const tradeMainRouters = require('./routes/tradeMainRoutes')
 const getUserCopyTradingData = require('./routes/copyTradingPortfolioRoutes')
 const actionsRoutes = require('./routes/actionsRoute')
-
+const path = require('path');
 
 
 const app = express();
@@ -20,9 +20,14 @@ app.use(cors());
 app.use(express.json());
 
 
+
 //config
 (async () => await connectDB())();
 (async () => await livePrices())();
+
+
+//Static
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 //GET Routes
 app.use('/api/auth', authRoutes); 

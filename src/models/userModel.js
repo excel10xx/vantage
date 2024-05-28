@@ -15,11 +15,10 @@ const tradeSchema = new mongoose.Schema({
     purchaseDate: { type: Date, default: Date.now },
     closeDate: { type: Date },
     side: { type: String, enum: ['buy', 'sell'], required: true },
-    commission: { type: Number, default: 0.0 }, 
+    commission: { type: Number, default: 0.0 },
     stopLoss: { type: Number },
     takeProfit: { type: Number }
 });
-
 
 const walletSchema = new mongoose.Schema({
     currency: String,
@@ -73,10 +72,11 @@ const userSchema = new mongoose.Schema({
     loginHistory: [loginHistorySchema],
     followedTraders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ExpertTrader' }],
     copyTradingPortfolio: [copyTradingPortfolioSchema],
-    transactions: [transactionSchema]
+    transactions: [transactionSchema],
+    name: { type: String, required: true },
+    profilePicture: { type: String, default: 'public/profile-pictures/defaultpicture.jpg' } 
 });
 
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
-
