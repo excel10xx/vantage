@@ -4,6 +4,7 @@ const { verifyUser } = require('../controllers/auth/userVerifyController');
 const { loginUser } = require('../controllers/auth/userLoginController');
 const { resetPassword, forgotPassword } = require('../controllers/auth/userResetPasswordController');
 const passport = require('passport');
+const jwt = require('jsonwebtoken');
 
 require('../config/passportConfig');
 
