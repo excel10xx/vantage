@@ -59,7 +59,7 @@ const transactionSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String },
     emailVerified: { type: Boolean, default: false },
     verificationCode: String,
     isAdmin: { type: Boolean, default: false },

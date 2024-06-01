@@ -4,6 +4,7 @@ const livePrices = require('./utils/livePrices');
 const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 require('dotenv').config();
 require('./config/passportConfig');
 
@@ -36,7 +37,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.DATABASE_URI,
+        collectionName: 'sessions'
+    }),
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24 // 1 day
+    }
 }));
 
 // Initialize passport
