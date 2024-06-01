@@ -75,10 +75,16 @@ async function getMarketData(req, res) {
                 priceInConversionCurrency = asset.price / conversionPrice;
             }
 
+            // Calculate bid and ask prices
+            const bidPrice = priceInConversionCurrency * (1 - Math.random() * 0.01); // Bid price slightly less than the market price
+            const askPrice = priceInConversionCurrency * (1 + Math.random() * 0.01); // Ask price slightly higher than the market price
+
             return {
                 symbol: asset.symbol,
                 name: asset.name,
                 price: priceInConversionCurrency,
+                bidPrice: bidPrice,
+                askPrice: askPrice,
                 baseCurrency: conversionCurrency
             };
         });

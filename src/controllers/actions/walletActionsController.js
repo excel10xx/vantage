@@ -57,7 +57,7 @@ const withdrawFromWallet = async (userId, currency, amountInUSD) => {
 };
 
 // Exchange currency controller
-const exchangeCurrency = async (userId, fromCurrency, toCurrency, amountInUSD) => {
+const exchangeCurrency = async (userId, fromCurrency, toCurrency, amount) => {
     try {
         // Find the user by userId
         const user = await User.findById(userId);
@@ -70,9 +70,6 @@ const exchangeCurrency = async (userId, fromCurrency, toCurrency, amountInUSD) =
 
         // Get the current price of the source cryptocurrency
         const fromCryptoPrice = await getCryptoPrice(fromCurrency);
-
-        // Convert USD amount to source cryptocurrency amount
-        const amount = amountInUSD / fromCryptoPrice;
 
         // Check if the user has sufficient balance in the source wallet
         if (fromWallet.balance < amount) throw { status: 'error', code: 400, data: null, message: 'Insufficient balance' };
@@ -93,7 +90,7 @@ const exchangeCurrency = async (userId, fromCurrency, toCurrency, amountInUSD) =
             fromCurrency,
             toCurrency,
             amount: toAmount,
-            amountInUSD,
+            amountInUSD: amount * fromCryptoPrice,
             date: new Date()
         });
 
@@ -101,7 +98,7 @@ const exchangeCurrency = async (userId, fromCurrency, toCurrency, amountInUSD) =
         await user.save();
 
         // Send email notification
-        await sendEmail(user.email, 'Exchange Confirmation', `You have successfully exchanged ${amount} ${fromCurrency} (worth $${amountInUSD}) to ${toAmount} ${toCurrency}`);
+        await sendEmail(user.email, 'Exchange Confirmation', `You have successfully exchanged ${amount} ${fromCurrency} (worth $${amount * fromCryptoPrice}) to ${toAmount} ${toCurrency}`);
 
         return { status: 'success', code: 200, data: user, message: 'Trade opened successfully' };
     } catch (error) {
@@ -110,65 +107,51 @@ const exchangeCurrency = async (userId, fromCurrency, toCurrency, amountInUSD) =
 };
 
 // Transfer funds controller
-const transferFunds = async (senderId, receiverId, currency, amountInUSD) => {
+const transfer = async (req, res) => {
+    const userId = req.user.id; // Get user ID from auth middleware
+    const { assetId, quantity, purchasePrice, side } = req.body;
+
     try {
-        // Find the sender and receiver users
-        const sender = await User.findById(senderId);
-        const receiver = await User.findById(receiverId);
-        if (!sender || !receiver) throw { status: 'error', code: 404, data: null, message: 'Sender or receiver not found' };
+        // Find the user by their ID
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ status: 'error', code: 404, data: null, message: 'User not found' });
+        }
 
-        // Find the sender's wallet with the specified currency
-        const senderWallet = sender.wallets.find(wallet => wallet.currency === currency);
-        if (!senderWallet) throw { status: 'error', code: 404, data: null, message: 'Sender wallet not found' };
+        // Find the asset by its ID
+        const asset = await Asset.findById(assetId);
+        if (!asset) {
+            return res.status(404).json({ status: 'error', code: 404, data: null, message: 'Asset not found' });
+        }
 
-        // Get the current price of the cryptocurrency
-        const cryptoPrice = await getCryptoPrice(currency);
+        // Create a new trade
+        const trade = {
+            asset: assetId,
+            quantity,
+            purchasePrice,
+            side,
+            status: 'opened',
+            purchaseDate: new Date()
+        };
 
-        // Convert USD amount to cryptocurrency amount
-        const amount = amountInUSD / cryptoPrice;
+        // Add the trade to the user's trades
+        user.trades.push(trade);
 
-        // Check if the sender has sufficient balance
-        if (senderWallet.balance < amount) throw { status: 'error', code: 400, data: null, message: 'Insufficient balance' };
+        // Save changes to the user
+        await user.save();
 
-        // Find the receiver's wallet with the specified currency
-        const receiverWallet = receiver.wallets.find(wallet => wallet.currency === currency);
-        if (!receiverWallet) throw { status: 'error', code: 404, data: null, message: 'Receiver wallet not found' };
+        // Send email notification to the user
+        await sendEmail(user.email, 'Trade Opened', `You have successfully opened a trade for ${quantity} ${asset.symbol} at ${purchasePrice} ${asset.priceCurrency}`);
 
-        // Update sender's and receiver's wallet balances
-        senderWallet.balance -= amount;
-        receiverWallet.balance += amount;
-
-        // Create transaction records for sender and receiver
-        sender.transactions.push({
-            type: 'transfer',
-            currency,
-            amount: -amount,
-            amountInUSD,
-            date: new Date(),
-            recipient: receiver.email
-        });
-        receiver.transactions.push({
-            type: 'transfer',
-            currency,
-            amount,
-            amountInUSD,
-            date: new Date(),
-            sender: sender.email
-        });
-
-        // Save changes
-        await sender.save();
-        await receiver.save();
-
-        // Send email notification to sender and receiver
-        await sendEmail(sender.email, 'Transfer Confirmation', `You have successfully transferred ${amount} ${currency} (worth $${amountInUSD}) to ${receiver.email}`);
-        await sendEmail(receiver.email, 'Incoming Transfer', `You have received ${amount} ${currency} (worth $${amountInUSD}) from ${sender.email}`);
-
-        return { status: 'success', code: 200, data: { sender, receiver }, message: 'Funds transferred successfully' };
+        // Return success response
+        res.status(200).json({ status: 'success', code: 200, data: user, message: 'Trade opened successfully' });
     } catch (error) {
-        return { status: 'error', code: error.code || 500, data: null, message: error.message };
+        console.error('Error placing trade:', error);
+        res.status(error.code || 500).json({ status: 'error', code: error.code || 500, data: null, message: error.message });
     }
 };
+
+
 
 // Deposit into wallet controller
 const depositIntoWallet = async (userId, currency, amountInUSD) => {
@@ -214,6 +197,6 @@ const depositIntoWallet = async (userId, currency, amountInUSD) => {
 module.exports = {
     withdrawFromWallet,
     exchangeCurrency,
-    transferFunds,
+    transfer,
     depositIntoWallet
 };

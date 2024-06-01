@@ -2,7 +2,12 @@ const express = require('express');
 const connectDB = require('./config/db');
 const livePrices = require('./utils/livePrices');
 const cors = require('cors');
+const passport = require('passport');
+const session = require('express-session');
 require('dotenv').config();
+require('./config/passportConfig');
+
+
 const authRoutes = require('./routes/authRoutes');
 const mainRoutes = require('./routes/mainRoutes');
 const depositRoutes = require('./routes/buyCryptoRoutes')
@@ -15,9 +20,11 @@ const path = require('path');
 
 
 const app = express();
+
 //Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
 
@@ -25,6 +32,16 @@ app.use(express.json());
 (async () => await connectDB())();
 (async () => await livePrices())();
 
+// Initialize session
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true
+}));
+
+// Initialize passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 //Static
 app.use('/public', express.static(path.join(__dirname, 'public')));

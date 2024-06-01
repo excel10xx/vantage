@@ -47,7 +47,7 @@ const loginUser = async (req, res) => {
         await user.save();
 
         // Generate JWT token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7h' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '3d' });
 
         // Send email with login details
         const loginSubject = 'Successful Login';

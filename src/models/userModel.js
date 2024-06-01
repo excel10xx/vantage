@@ -74,7 +74,8 @@ const userSchema = new mongoose.Schema({
     copyTradingPortfolio: [copyTradingPortfolioSchema],
     transactions: [transactionSchema],
     name: { type: String, required: true },
-    profilePicture: { type: String, default: 'public/profile-pictures/defaultpicture.jpg' } 
+    profilePicture: { type: String, default: 'public/profile-pictures/defaultpicture.jpg' },
+    googleId: { type: String, unique: true, sparse: true }
 });
 
 const User = mongoose.model('User', userSchema);

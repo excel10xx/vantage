@@ -21,8 +21,8 @@ const createUser = async (req, res) => {
             });
         }
 
-        // Generate verification code
-        const verificationCode = Math.random().toString(36).substring(2, 8).toUpperCase(); // Generate a random alphanumeric code
+        // Generate a four-digit numeric verification code
+        const verificationCode = Math.floor(1000 + Math.random() * 9000); // Generate a random 4-digit number
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);

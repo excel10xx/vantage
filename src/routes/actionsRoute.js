@@ -1,18 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const authenticate = require('../middleware/authenticate');
 const {
     withdrawFromWallet,
     exchangeCurrency,
-    transferFunds,
+    transfer,
     depositIntoWallet
 } = require('../controllers/actions/walletActionsController');
 const { followCopyTrader, stopFollowCopyTrader } = require('../controllers/actions/copyTraderActionsController');
 const { openTrade, closeTrade } = require('../controllers/actions/tradeActionsController');
 
-
 // Route for withdrawing from wallet
-router.post('/wallet/withdraw', async (req, res) => {
-    const { userId, currency, amountInUSD } = req.body;
+router.post('/wallet/withdraw', authenticate, async (req, res) => {
+    const { currency, amountInUSD } = req.body;
+    const userId = req.user._id;
     try {
         const user = await withdrawFromWallet(userId, currency, amountInUSD);
         res.status(200).json({ success: true, user });
@@ -22,8 +23,9 @@ router.post('/wallet/withdraw', async (req, res) => {
 });
 
 // Route for exchanging currency
-router.post('/wallet/exchange', async (req, res) => {
-    const { userId, fromCurrency, toCurrency, amountInUSD } = req.body;
+router.post('/wallet/exchange', authenticate, async (req, res) => {
+    const { fromCurrency, toCurrency, amountInUSD } = req.body;
+    const userId = req.user._id;
     try {
         const user = await exchangeCurrency(userId, fromCurrency, toCurrency, amountInUSD);
         res.status(200).json({ success: true, user });
@@ -32,20 +34,21 @@ router.post('/wallet/exchange', async (req, res) => {
     }
 });
 
-// Route for transferring funds
-router.post('/wallet/transfer', async (req, res) => {
-    const { senderId, receiverId, currency, amountInUSD } = req.body;
+// Route for placing a trade
+router.post('/wallet/transfer', authenticate, async (req, res) => {
     try {
-        const result = await transferFunds(senderId, receiverId, currency, amountInUSD);
-        res.status(200).json({ success: true, result });
+        await transfer(req, res);
     } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
 
+module.exports = router;
+
 // Route for depositing into wallet
-router.post('/wallet/deposit', async (req, res) => {
-    const { userId, currency, amountInUSD } = req.body;
+router.post('/wallet/deposit', authenticate, async (req, res) => {
+    const { currency, amountInUSD } = req.body;
+    const userId = req.user._id;
     try {
         const user = await depositIntoWallet(userId, currency, amountInUSD);
         res.status(200).json({ success: true, user });
@@ -54,10 +57,10 @@ router.post('/wallet/deposit', async (req, res) => {
     }
 });
 
-
-
 // Route to follow a copy trader
-router.post('copytrader/follow', async (req, res) => {
+router.post('/copytrader/follow', authenticate, async (req, res) => {
+    const userId = req.user._id;
+    req.body.userId = userId;
     try {
         await followCopyTrader(req, res);
     } catch (error) {
@@ -66,7 +69,9 @@ router.post('copytrader/follow', async (req, res) => {
 });
 
 // Route to stop following a copy trader
-router.post('copytrader/unfollow', async (req, res) => {
+router.post('/copytrader/unfollow', authenticate, async (req, res) => {
+    const userId = req.user._id;
+    req.body.userId = userId;
     try {
         await stopFollowCopyTrader(req, res);
     } catch (error) {
@@ -75,7 +80,9 @@ router.post('copytrader/unfollow', async (req, res) => {
 });
 
 // Route to open a trade
-router.post('/open', async (req, res) => {
+router.post('/open', authenticate, async (req, res) => {
+    const userId = req.user._id;
+    req.body.userId = userId;
     try {
         await openTrade(req, res);
     } catch (error) {
@@ -84,7 +91,9 @@ router.post('/open', async (req, res) => {
 });
 
 // Route to close a trade
-router.post('/close', async (req, res) => {
+router.post('/close', authenticate, async (req, res) => {
+    const userId = req.user._id;
+    req.body.userId = userId;
     try {
         await closeTrade(req, res);
     } catch (error) {
@@ -93,5 +102,3 @@ router.post('/close', async (req, res) => {
 });
 
 module.exports = router;
-
-

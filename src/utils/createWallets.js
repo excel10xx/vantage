@@ -86,29 +86,6 @@ const generateDogecoinWallet = () => {
     return wallet
 };
 
-// // Cardano
-// const generateCardanoWallet = async () => {
-//     const mnemonic = await Mnemonic.generate();
-//     const wallet = {
-//         mnemonic: mnemonic.join(' '),
-//         chain: "Cardano",
-//         currency: "ADA"
-//     };
-//     return wallet;
-//};
-
-//Test
-// (async () => {
-//     console.log("Bitcoin Wallet:", generateBitcoinWallet());
-//     console.log("Ethereum Wallet:", generateEthereumWallet());
-//     console.log("USDT Wallet:", generateUSDTWallet());
-//     console.log("USDC Wallet:", generateUSDCWallet());
-//     console.log("Solana Wallet:", generateSolanaWallet());
-//     console.log("BNB Wallet:", generateBNBWallet());
-//     console.log("Ripple Wallet:", generateRippleWallet());
-//     console.log("Dogecoin Wallet:", generateDogecoinWallet());
-//    console.log("Cardano Wallet:", generateCardanoWallet());
-// })();
 
 module.exports = {
     generateBitcoinWallet,

@@ -28,8 +28,9 @@ async function getAllUserDetails(req, res) {
         // Calculate total balance
         const totalBalance = user.depositBalance + profitBalance;
 
-        // Array to hold wallet balances
+        // Arrays to hold wallet balances and total equity
         const walletBalances = [];
+        let totalWalletEquityUSD = 0;
 
         // Fetch cryptocurrency prices from the Asset model
         const cryptoAssets = await Asset.find({ type: 'cryptocurrency' });
@@ -47,6 +48,7 @@ async function getAllUserDetails(req, res) {
 
             // Calculate amount in USD
             const amountUSD = wallet.balance * asset.price;
+            totalWalletEquityUSD += amountUSD;
 
             // Add wallet balance to the array
             walletBalances.push({
@@ -57,8 +59,9 @@ async function getAllUserDetails(req, res) {
             });
         }
 
-        // Array to hold asset holdings details
+        // Arrays to hold asset holdings details and total equity
         const assetHoldingsDetails = [];
+        let totalAssetHoldingsEquityUSD = 0;
 
         // Loop through each asset holding of the user
         for (const holding of user.assetHoldings) {
@@ -68,6 +71,7 @@ async function getAllUserDetails(req, res) {
             const currentPrice = asset.price;
             const equityInAsset = holding.quantity;
             const equityInUSD = holding.quantity * currentPrice;
+            totalAssetHoldingsEquityUSD += equityInUSD;
 
             // Calculate open P/L in asset and in USD
             const openPLInAsset = holding.quantity * (currentPrice - holding.purchasePrice);
@@ -87,8 +91,9 @@ async function getAllUserDetails(req, res) {
             });
         }
 
-        // Array to hold cryptocurrency holdings details
+        // Arrays to hold cryptocurrency holdings details and total equity
         const cryptoHoldingsDetails = [];
+        let totalCryptoHoldingsEquityUSD = 0;
 
         // Loop through each cryptocurrency holding of the user
         for (const holding of user.assetHoldings) {
@@ -101,6 +106,7 @@ async function getAllUserDetails(req, res) {
             const currentPrice = asset.price;
             const equityInAsset = holding.quantity;
             const equityInUSD = holding.quantity * currentPrice;
+            totalCryptoHoldingsEquityUSD += equityInUSD;
 
             // Calculate open P/L in asset and in USD
             const openPLInAsset = holding.quantity * (currentPrice - holding.purchasePrice);
@@ -145,7 +151,12 @@ async function getAllUserDetails(req, res) {
                 assetHoldingsDetails,
                 cryptoHoldingsDetails,
                 copyTraders,
-                copyTradingPortfolio
+                copyTradingPortfolio,
+                totalEquity: {
+                    wallets: totalWalletEquityUSD,
+                    assetHoldings: totalAssetHoldingsEquityUSD,
+                    cryptoHoldings: totalCryptoHoldingsEquityUSD
+                }
             },
             message: 'User details retrieved successfully'
         });

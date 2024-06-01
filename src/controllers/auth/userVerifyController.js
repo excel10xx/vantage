@@ -1,5 +1,7 @@
+const jwt = require('jsonwebtoken');
 const User = require('../../models/userModel');
 const createWallets = require('../../utils/createWallets');
+require('dotenv').config();
 
 // Controller function to verify user by verification code
 const verifyUser = async (req, res) => {
@@ -43,11 +45,14 @@ const verifyUser = async (req, res) => {
         // Save user
         await user.save();
 
-        // Respond with success message
+        // Generate JWT token
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '3d' });
+
+        // Respond with success message and token
         res.status(200).json({
             status: 'success',
             code: 200,
-            data: 'User verified successfully'
+            data: { jwt: token, message: 'User verified successfully' }
         });
     } catch (error) {
         // Handle error
