@@ -24,10 +24,10 @@ router.post('/wallet/withdraw', authenticate, async (req, res) => {
 
 // Route for exchanging currency
 router.post('/wallet/exchange', authenticate, async (req, res) => {
-    const { fromCurrency, toCurrency, amountInUSD } = req.body;
+    const { fromCurrency, toCurrency, amount } = req.body;
     const userId = req.user._id;
     try {
-        const user = await exchangeCurrency(userId, fromCurrency, toCurrency, amountInUSD);
+        const user = await exchangeCurrency(userId, fromCurrency, toCurrency, amount);
         res.status(200).json({ success: true, user });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
