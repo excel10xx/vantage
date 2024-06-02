@@ -49,7 +49,7 @@ const copyTradingPortfolioSchema = new mongoose.Schema({
 
 const transactionSchema = new mongoose.Schema({
     type: { type: String, enum: ['withdraw', 'exchange', 'transfer', 'deposit'], required: true },
-    currency: { type: String, required: true },
+    currency: { type: String },
     fromCurrency: { type: String }, // For exchange transactions
     toCurrency: { type: String },   // For exchange transactions
     amount: { type: Number, required: true },
