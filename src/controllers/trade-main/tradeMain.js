@@ -51,6 +51,7 @@ async function getMarketData(req, res) {
         const bonus = 0; // Placeholder for bonus, modify as per your bonus logic
 
         walletBalances.push({
+            id: wallet._id,
             symbol: conversionCurrency.toUpperCase(),
             balance: balanceInConversionCurrency,
             accountMargin: accountMargin,
@@ -80,6 +81,7 @@ async function getMarketData(req, res) {
             const askPrice = priceInConversionCurrency * (1 + Math.random() * 0.01); // Ask price slightly higher than the market price
 
             return {
+                id: asset._id,
                 symbol: asset.symbol,
                 name: asset.name,
                 price: priceInConversionCurrency,
@@ -100,6 +102,7 @@ async function getMarketData(req, res) {
                 }
 
                 return {
+                    id: trade._id,
                     symbol: trade.asset.symbol,
                     side: trade.side,
                     size: trade.quantity,
@@ -118,6 +121,7 @@ async function getMarketData(req, res) {
                 const takeProfit = trade.side === 'buy' ? currentPrice >= (fillPrice * 1.05) : currentPrice <= (fillPrice * 0.95); // Example take profit condition (5% gain/loss)
 
                 return {
+                    id: trade._id,
                     symbol: trade.asset.symbol,
                     side: trade.side,
                     size: trade.quantity,
