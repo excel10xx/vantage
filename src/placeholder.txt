@@ -62,11 +62,14 @@ app.use('/api/account/details', accountDetailsRoutes);
 app.use('/api/trade/main', tradeMainRoutes);
 app.use('/api/copytrading/portfolio', getUserCopyTradingData);
 app.use('/api/copytrading/ratings', getCopyTradingExperts);
+app.use('/api/actions', actionsRoutes);
 app.use('/api/kyc', kycRoutes); // Include KYC routes
 app.use('/api/settings', settingsRoutes); // Include settings routes
 
-//POST Routes
-app.use('/api/actions', actionsRoutes);
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+
+//POST Routes
+app.use('/api/actions', actionsRoutes);
