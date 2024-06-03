@@ -32,18 +32,15 @@ router.get(
     passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-//Google OAuth callback route
+// Google OAuth callback route
 router.get(
     '/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     async (req, res) => {
-        // Successful authentication, generate JWT and send it to the client
+        // Successful authentication, generate JWT and redirect to frontend
         const token = jwt.sign({ userId: req.user._id }, process.env.JWT_SECRET, { expiresIn: '3d' });
-        res.status(200).json({
-            status: 'success',
-            code: 200,
-            data: { jwt: token, message: 'Login successful with Google' }
-        });
+        const redirectUrl = `${process.env.FRONTEND_URL}?jwt=${token}`;
+        res.redirect(redirectUrl);
     }
 );
 
@@ -55,13 +52,10 @@ router.get(
     '/twitter/callback',
     passport.authenticate('twitter', { failureRedirect: '/login' }),
     async (req, res) => {
-        // Successful authentication, generate JWT and send it to the client
+        // Successful authentication, generate JWT and redirect to frontend
         const token = jwt.sign({ userId: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7h' });
-        res.status(200).json({
-            status: 'success',
-            code: 200,
-            data: { jwt: token, message: 'Login successful with Twitter' }
-        });
+        const redirectUrl = `${process.env.FRONTEND_URL}?jwt=${token}`;
+        res.redirect(redirectUrl);
     }
 );
 

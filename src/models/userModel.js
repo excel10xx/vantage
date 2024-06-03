@@ -25,7 +25,13 @@ const walletSchema = new mongoose.Schema({
     privateKey: String,
     address: String,
     chain: String,
-    balance: { type: Number, default: 0.0 }
+    balance: { type: Number, default: 0.0 },
+    logoPath: {
+        type: String,
+        default: function () {
+            return `public/crypto-symbols/${this.currency.toLowerCase()}.png`;
+        }
+    }
 });
 
 const loginHistorySchema = new mongoose.Schema({
@@ -49,12 +55,40 @@ const copyTradingPortfolioSchema = new mongoose.Schema({
 
 const transactionSchema = new mongoose.Schema({
     type: { type: String, enum: ['withdraw', 'exchange', 'transfer', 'deposit'], required: true },
+    method: { type: String, enum: ['crypto', 'fiat'] }, // Withdrawal method
     currency: { type: String },
     fromCurrency: { type: String }, // For exchange transactions
     toCurrency: { type: String },   // For exchange transactions
-    amount: { type: Number, required: true },
-    amountInUSD: { type: Number, required: true },
+    amount: { type: Number },
+    amountInUSD: { type: Number },
     date: { type: Date, default: Date.now }
+});
+
+const kycSchema = new mongoose.Schema({
+    profilePicture: { type: String, default: 'public/profile-pictures/defaultpicture.jpg' },
+    prefix: { type: String, enum: ['Mr', 'Mrs', 'Miss'] },
+    fullName: { type: String, required: true },
+    maidenName: String,
+    dateOfBirth: { type: Date, required: true },
+    residentialAddress: { type: String, required: true },
+    zipCode: String,
+    employmentStatus: { type: String, enum: ['Employed', 'Unemployed', 'Student'] },
+    selfieUpload: String, // File path for selfie
+    idType: { type: String, enum: ['Passport', 'Driver License', 'ID Card'] },
+    idUpload: String, // File path for ID upload
+});
+
+const settingsSchema = new mongoose.Schema({
+    language: { type: String, enum: ['en', 'es', 'fr', 'de', 'it', 'pt'], default: 'en' },
+    enableNotification: { type: Boolean, default: true },
+    transferNotification: { type: Boolean, default: true },
+    globalMarketNotification: { type: Boolean, default: true },
+    copyTradingNotification: { type: Boolean, default: true },
+    loginEmailNotification: { type: Boolean, default: true },
+    tradeLiquidationEmailNotification: { type: Boolean, default: true },
+    tradeMarginCallEmailNotification: { type: Boolean, default: true },
+    copyTradeEmailNotification: { type: Boolean, default: true },
+    accountVerified: { type: Boolean, default: false } // Non-editable by user
 });
 
 const userSchema = new mongoose.Schema({
@@ -75,7 +109,9 @@ const userSchema = new mongoose.Schema({
     transactions: [transactionSchema],
     name: { type: String, required: true },
     profilePicture: { type: String, default: 'public/profile-pictures/defaultpicture.jpg' },
-    googleId: { type: String, unique: true, sparse: true }
+    googleId: { type: String, unique: true, sparse: true },
+    kyc: kycSchema,
+    settings: settingsSchema
 });
 
 const User = mongoose.model('User', userSchema);

@@ -21,6 +21,7 @@ async function getWalletDetails(req, res) {
         const walletDetails = {
             network: wallet.chain,
             wallet: {
+                image: wallet.logoPath,
                 currency: wallet.currency,
                 address: wallet.address,
                 chain: wallet.chain,

@@ -8,28 +8,27 @@ const MongoStore = require('connect-mongo');
 require('dotenv').config();
 require('./config/passportConfig');
 
-
 const authRoutes = require('./routes/authRoutes');
 const mainRoutes = require('./routes/mainRoutes');
-const depositRoutes = require('./routes/buyCryptoRoutes')
-const tradeHistoryRoutes = require('./routes/tradeHistoryRoutes')
-const accountDetailsRouters = require('./routes/accountDetailsRoutes')
-const tradeMainRouters = require('./routes/tradeMainRoutes')
-const getUserCopyTradingData = require('./routes/copyTradingPortfolioRoutes')
-const actionsRoutes = require('./routes/actionsRoute')
+const depositRoutes = require('./routes/buyCryptoRoutes');
+const tradeHistoryRoutes = require('./routes/tradeHistoryRoutes');
+const accountDetailsRoutes = require('./routes/accountDetailsRoutes');
+const tradeMainRoutes = require('./routes/tradeMainRoutes');
+const getUserCopyTradingData = require('./routes/copyTradingPortfolioRoutes');
+const getCopyTradingExperts = require('./routes/copyTradingRatingsRoute');
+const actionsRoutes = require('./routes/actionsRoute');
+const kycRoutes = require('./routes/kycRoutes'); // Include KYC routes
+const settingsRoutes = require('./routes/settingsRoutes'); // Include settings routes
 const path = require('path');
-
 
 const app = express();
 
-//Middleware
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
-
-//config
+// Config
 (async () => await connectDB())();
 (async () => await livePrices())();
 
@@ -51,21 +50,21 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-//Static
+// Static
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
-//GET Routes
-app.use('/api/auth', authRoutes); 
+// GET Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/main', mainRoutes);
-app.use('/api/deposit', depositRoutes); 
+app.use('/api/deposit', depositRoutes);
 app.use('/api/trade/history', tradeHistoryRoutes);
-app.use('/api/account/details', accountDetailsRouters);
-app.use('/api/trade/main', tradeMainRouters);
+app.use('/api/account/details', accountDetailsRoutes);
+app.use('/api/trade/main', tradeMainRoutes);
 app.use('/api/copytrading/portfolio', getUserCopyTradingData);
-
-
-//POST Routes
+app.use('/api/copytrading/ratings', getCopyTradingExperts);
 app.use('/api/actions', actionsRoutes);
+app.use('/api/kyc', kycRoutes); // Include KYC routes
+app.use('/api/settings', settingsRoutes); // Include settings routes
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

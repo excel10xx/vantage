@@ -9,8 +9,7 @@ const getCryptoPrice = async (symbol) => {
     return asset.price;
 };
 
-// Withdraw from wallet controller
-const withdrawFromWallet = async (userId, currency, amountInUSD) => {
+const withdrawFromWallet = async (userId, currency, amountInUSD, method) => {
     try {
         // Ensure the withdrawal amount is at least $2000
         if (amountInUSD < 2000) throw new Error('Withdrawal amount must be at least $2000');
@@ -38,6 +37,7 @@ const withdrawFromWallet = async (userId, currency, amountInUSD) => {
         // Create transaction record
         user.transactions.push({
             type: 'withdraw',
+            method: method, // Added method field
             currency,
             amount,
             amountInUSD,
@@ -50,10 +50,14 @@ const withdrawFromWallet = async (userId, currency, amountInUSD) => {
         // Send email notification
         await sendEmail(user.email, 'Withdrawal Confirmation', `You have successfully withdrawn ${amount} ${currency} (worth $${amountInUSD})`);
 
-        return { status: 'success', code: 200, data: user, message: 'Trade opened successfully' };
+        return { status: 'success', code: 200, data: user, message: 'Withdrawal successful' };
     } catch (error) {
         return { status: 'error', code: error.code || 500, data: null, message: error.message };
     }
+};
+
+module.exports = {
+    withdrawFromWallet
 };
 
 // Exchange currency controller
@@ -100,7 +104,7 @@ const exchangeCurrency = async (userId, fromCurrency, toCurrency, amount) => {
         // Send email notification
         await sendEmail(user.email, 'Exchange Confirmation', `You have successfully exchanged ${amount} ${fromCurrency} (worth $${amount * fromCryptoPrice}) to ${toAmount} ${toCurrency}`);
 
-        return { status: 'success', code: 200, data: user, message: 'Trade opened successfully' };
+        return { status: 'success', code: 200, data: user, message: 'Currency exchanged successfully' };
     } catch (error) {
         return { status: 'error', code: error.code || 500, data: null, message: error.message };
     }
