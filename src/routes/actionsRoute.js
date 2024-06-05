@@ -9,7 +9,7 @@ const {
 } = require('../controllers/actions/walletActionsController');
 const { followCopyTrader, stopFollowCopyTrader } = require('../controllers/actions/copyTraderActionsController');
 const { openTrade, closeTrade } = require('../controllers/actions/tradeActionsController');
-const { getAssetPrice } = require('../controllers/actions/assetsActionsController');
+const { convertAsset } = require('../controllers/actions/assetsActionsController');
 
 // Route for withdrawing from wallet
 router.post('/wallet/withdraw', authenticate, async (req, res) => {
@@ -103,6 +103,6 @@ router.post('/close', authenticate, async (req, res) => {
 });
 
 // Route to get the current price of an asset
-router.get('/price/:symbol', authenticate, getAssetPrice);
+router.get('/convert', authenticate, convertAsset);
 
 module.exports = router;

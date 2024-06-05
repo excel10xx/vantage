@@ -20,10 +20,8 @@ const actionsRoutes = require('./routes/actionsRoute');
 const kycRoutes = require('./routes/kycRoutes'); // Include KYC routes
 const settingsRoutes = require('./routes/settingsRoutes'); // Include settings routes
 const path = require('path');
-
 const app = express();
 
-// Middleware
 // Middleware
 app.use(cors({
     origin: '*', 
