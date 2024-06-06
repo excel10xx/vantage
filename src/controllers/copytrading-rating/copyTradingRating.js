@@ -23,6 +23,7 @@ async function getCopyTradingExperts(req, res) {
                 totalProfit: expert.totalProfit,
                 todaysProfit: expert.todaysProfit,
                 profitShare: expert.profitShare,
+                minimumCapital: expert.minimumCapital,
                 followers: followersCount,
                 winRate: expert.winRate,
                 followersEquity: expert.followersEquity,
