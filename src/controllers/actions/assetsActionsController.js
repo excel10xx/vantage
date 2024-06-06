@@ -1,5 +1,5 @@
 const Asset = require('../../models/assetsModel');
-const User = require('../../models/userModel');
+
 
 async function convertAsset(req, res) {
     const { amount, fromAsset, toAsset } = req.query;

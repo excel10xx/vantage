@@ -8,6 +8,7 @@ const expertTraderSchema = new mongoose.Schema({
     profitShare: { type: Number, default: 0 }, // Percentage
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     followersEquity: { type: Number, default: 0 },
+    minimumCapital: { type: Number, default: 1000 },
     rating: { type: Number, default: 0 }, // Number of stars
     winRate: { type: Number, default: 0 } // Percentage
 });
