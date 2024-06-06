@@ -3,6 +3,7 @@ const ExpertTrader = require('../../models/expertTraderModel');
 const sendEmail = require('../../utils/sendEmail');
 
 // Controller to follow a copy trader (create and open a copy trading portfolio)
+// Controller to follow a copy trader (create and open a copy trading portfolio)
 const followCopyTrader = async (req, res) => {
     const { userId, traderId, allocatedAmount, initialEquity } = req.body;
     try {
@@ -23,8 +24,19 @@ const followCopyTrader = async (req, res) => {
         // Add the portfolio to the user's copy trading portfolios
         user.copyTradingPortfolio.push(portfolio);
 
-        // Save changes to the user
+        // Add the trader ID to the user's followedTraders array
+        if (!user.followedTraders.includes(traderId)) {
+            user.followedTraders.push(traderId);
+        }
+
+        // Add the user ID to the trader's followers array
+        if (!trader.followers.includes(userId)) {
+            trader.followers.push(userId);
+        }
+
+        // Save changes to the user and trader
         await user.save();
+        await trader.save();
 
         // Send email notification to the user
         await sendEmail(user.email, 'Copy Trader Followed', `You have successfully followed ${trader.name}`);
@@ -34,6 +46,7 @@ const followCopyTrader = async (req, res) => {
         res.status(error.code || 400).json({ status: error.status || 'error', code: error.code || 400, data: null, message: error.message });
     }
 };
+
 
 // Controller to stop following a copy trader (close a copy trading portfolio)
 const stopFollowCopyTrader = async (req, res) => {
@@ -47,10 +60,23 @@ const stopFollowCopyTrader = async (req, res) => {
         const portfolioIndex = user.copyTradingPortfolio.findIndex(portfolio => portfolio._id.equals(portfolioId));
         if (portfolioIndex === -1) throw { status: 'error', code: 404, data: null, message: 'Portfolio not found' };
 
+        // Get the trader ID from the portfolio
+        const traderId = user.copyTradingPortfolio[portfolioIndex].trader;
+
         // Set the closing date of the portfolio to the current date
         user.copyTradingPortfolio[portfolioIndex].closingDate = new Date();
         // Update the status of the portfolio to 'closed'
         user.copyTradingPortfolio[portfolioIndex].status = 'closed';
+
+        // Remove the trader ID from the user's followedTraders array
+        user.followedTraders.pull(traderId);
+
+        // Find the trader and remove the user ID from the trader's followers array
+        const trader = await ExpertTrader.findById(traderId);
+        if (trader) {
+            trader.followers.pull(userId);
+            await trader.save();
+        }
 
         // Save changes to the user
         await user.save();
@@ -63,5 +89,6 @@ const stopFollowCopyTrader = async (req, res) => {
         res.status(error.code || 400).json({ status: error.status || 'error', code: error.code || 400, data: null, message: error.message });
     }
 };
+
 
 module.exports = { followCopyTrader, stopFollowCopyTrader };
