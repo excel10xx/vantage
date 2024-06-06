@@ -18,7 +18,7 @@ async function convertAsset(req, res) {
         }
 
         // Calculate the converted amount
-        const convertedAmount = (amount / fromAssetData.price) * toAssetData.price;
+        const convertedAmount = (amount * fromAssetData.price) / toAssetData.price;
 
         // Return the converted amount
         return res.status(200).json({
