@@ -34,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Config
 (async () => await connectDB())();
-(async () => await livePrices())();
+// (async () => await livePrices())();
 
 // Initialize session
 app.use(session({
