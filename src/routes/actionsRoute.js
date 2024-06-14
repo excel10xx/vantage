@@ -13,10 +13,10 @@ const { convertAsset } = require('../controllers/actions/assetsActionsController
 
 // Route for withdrawing from wallet
 router.post('/wallet/withdraw', authenticate, async (req, res) => {
-    const { currency, amountInUSD } = req.body;
+    const { currency, amountInUSD, method } = req.body;
     const userId = req.user._id;
     try {
-        const user = await withdrawFromWallet(userId, currency, amountInUSD);
+        const user = await withdrawFromWallet(userId, currency, amountInUSD, method);
         res.status(200).json({ success: true, user });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
