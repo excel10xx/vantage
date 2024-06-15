@@ -11,8 +11,6 @@ const getCryptoPrice = async (symbol) => {
 
 const withdrawFromWallet = async (userId, currency, amountInUSD, method) => {
     try {
-        // Ensure the withdrawal amount is at least $2000
-        if (amountInUSD < 2000) throw new Error('Withdrawal amount must be at least $2000');
 
         // Find the user by userId
         const user = await User.findById(userId);
