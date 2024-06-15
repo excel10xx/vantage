@@ -142,6 +142,8 @@ async function getAllUserDetails(req, res) {
             status: 'success',
             code: 200,
             data: {
+                id: user._id,
+                email: user.email,
                 name: user.name,
                 profilePicture: user.profilePicture,
                 depositBalance: user.depositBalance,
