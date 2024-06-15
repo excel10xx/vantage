@@ -11,23 +11,34 @@ const getCryptoPrice = async (symbol) => {
 
 const withdrawFromWallet = async (userId, currency, amountInUSD, method) => {
     try {
+        console.log(`Starting withdrawal for user: ${userId}, currency: ${currency}, amountInUSD: ${amountInUSD}, method: ${method}`);
 
         // Find the user by userId
         const user = await User.findById(userId);
-        if (!user) throw { status: 'error', code: 404, data: null, message: 'User not found' };
+        if (!user) {
+            console.log('User not found');
+            throw { status: 'error', code: 404, data: null, message: 'User not found' };
+        }
 
         // Find the wallet with the specified currency
         const wallet = user.wallets.find(wallet => wallet.currency === currency);
-        if (!wallet) throw { status: 'error', code: 404, data: null, message: 'Wallet not found' };
+        if (!wallet) {
+            console.log('Wallet not found');
+            throw { status: 'error', code: 404, data: null, message: 'Wallet not found' };
+        }
 
         // Get the current price of the cryptocurrency
         const cryptoPrice = await getCryptoPrice(currency);
+        console.log(`Crypto price for ${currency}: ${cryptoPrice}`);
 
         // Convert USD amount to cryptocurrency amount
         const amount = amountInUSD / cryptoPrice;
 
         // Check if the user has sufficient balance
-        if (wallet.balance < amount) throw { status: 'error', code: 400, data: null, message: 'Insufficient balance' };
+        if (wallet.balance < amount) {
+            console.log('Insufficient balance');
+            throw { status: 'error', code: 400, data: null, message: 'Insufficient balance' };
+        }
 
         // Update wallet balance
         wallet.balance -= amount;
@@ -35,7 +46,7 @@ const withdrawFromWallet = async (userId, currency, amountInUSD, method) => {
         // Create transaction record
         user.transactions.push({
             type: 'withdraw',
-            method: method, // Added method field
+            method: method,
             currency,
             amount,
             amountInUSD,
@@ -50,13 +61,24 @@ const withdrawFromWallet = async (userId, currency, amountInUSD, method) => {
 
         return { status: 'success', code: 200, data: user, message: 'Withdrawal successful' };
     } catch (error) {
+        console.error('Error during withdrawal process:', error);
         return { status: 'error', code: error.code || 500, data: null, message: error.message };
     }
 };
 
-module.exports = {
-    withdrawFromWallet
-};
+// Route for withdrawing from wallet
+router.post('/wallet/withdraw', authenticate, async (req, res) => {
+    const { currency, amountInUSD, method } = req.body;
+    const userId = req.user._id;
+    try {
+        const result = await withdrawFromWallet(userId, currency, amountInUSD, method);
+        res.status(result.code).json(result);
+    } catch (error) {
+        console.error('Route handler error:', error);
+        res.status(error.code || 500).json({ success: false, message: error.message });
+    }
+});
+
 
 // Exchange currency controller
 const exchangeCurrency = async (userId, fromCurrency, toCurrency, amount) => {

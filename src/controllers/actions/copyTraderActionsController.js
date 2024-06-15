@@ -2,7 +2,7 @@ const User = require('../../models/userModel');
 const ExpertTrader = require('../../models/expertTraderModel');
 const sendEmail = require('../../utils/sendEmail');
 
-// Controller to follow a copy trader (create and open a copy trading portfolio)
+
 // Controller to follow a copy trader (create and open a copy trading portfolio)
 const followCopyTrader = async (req, res) => {
     const { userId, traderId, allocatedAmount, initialEquity } = req.body;

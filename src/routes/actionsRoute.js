@@ -16,10 +16,11 @@ router.post('/wallet/withdraw', authenticate, async (req, res) => {
     const { currency, amountInUSD, method } = req.body;
     const userId = req.user._id;
     try {
-        const user = await withdrawFromWallet(userId, currency, amountInUSD, method);
-        res.status(200).json({ success: true, user });
+        const result = await withdrawFromWallet(userId, currency, amountInUSD, method);
+        res.status(result.code).json(result);
     } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        console.error('Route handler error:', error);
+        res.status(error.code || 500).json({ success: false, message: error.message });
     }
 });
 
