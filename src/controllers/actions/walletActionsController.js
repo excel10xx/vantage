@@ -12,7 +12,7 @@ const getCryptoPrice = async (symbol) => {
 const withdrawFromWallet = async (userId, currency, amountInUSD, method) => {
     try {
         console.log(`Starting withdrawal for user: ${userId}, currency: ${currency}, amountInUSD: ${amountInUSD}, method: ${method}`);
-
+        
         // Find the user by userId
         const user = await User.findById(userId);
         if (!user) {
@@ -65,19 +65,6 @@ const withdrawFromWallet = async (userId, currency, amountInUSD, method) => {
         return { status: 'error', code: error.code || 500, data: null, message: error.message };
     }
 };
-
-// Route for withdrawing from wallet
-router.post('/wallet/withdraw', authenticate, async (req, res) => {
-    const { currency, amountInUSD, method } = req.body;
-    const userId = req.user._id;
-    try {
-        const result = await withdrawFromWallet(userId, currency, amountInUSD, method);
-        res.status(result.code).json(result);
-    } catch (error) {
-        console.error('Route handler error:', error);
-        res.status(error.code || 500).json({ success: false, message: error.message });
-    }
-});
 
 
 // Exchange currency controller
