@@ -14,20 +14,27 @@ async function getUserCopyTradingData(req, res) {
             return res.status(404).json({ status: 'error', code: 404, data: null, message: 'User not found' });
         }
 
+        // Generate a random multiplier between 1.5 and 3
+        const randomMultiplier = 1.5 + Math.random() * 1.5;
+
         // Copy trading portfolio
-        const portfolio = user.copyTradingPortfolio.map(portfolioItem => {
+        const portfolio = user.copyTradingPortfolio
+            .filter(portfolioItem => portfolioItem.status === 'active')
+            .map(portfolioItem => {
+            const id = portfolioItem._id;
             const trader = portfolioItem.trader;
-            const todayProfit = trader.totalProfit * (portfolioItem.currentEquity / portfolioItem.initialEquity) / 100;
+            const todaysProfit = trader.todaysProfit
             const initialEquity = portfolioItem.initialEquity;
-            const currentEquity = portfolioItem.currentEquity;
-            const sl = 0; // Placeholder for S/L calculation
-            const totalPoints = trader.totalPoints;
+            const currentEquity = portfolioItem.initialEquity * randomMultiplier;
+            const sl = 1; // Placeholder for S/L calculation
+            const totalProfit = trader.totalProfit;
             const status = portfolioItem.status;
 
             return {
+                id: id,
                 name: trader.name,
-                todaysProfit: todayProfit.toFixed(2),
-                totalPoints: totalPoints,
+                todaysProfit: todaysProfit.toFixed(2),
+                totalProfit: totalProfit,
                 sl: sl,
                 initialEquity: initialEquity.toFixed(2),
                 currentEquity: currentEquity.toFixed(2),
@@ -35,19 +42,23 @@ async function getUserCopyTradingData(req, res) {
             };
         });
 
+        
+
         // Following history
         const followingHistory = user.copyTradingPortfolio
             .filter(portfolioItem => portfolioItem.status === 'closed')
             .map(portfolioItem => {
+                const id = portfolioItem._id;
                 const trader = portfolioItem.trader;
                 const initialEquity = portfolioItem.initialEquity;
                 const settledEquity = portfolioItem.settledEquity;
                 const commission = portfolioItem.commission;
-                const totalProfit = ((settledEquity - initialEquity) / initialEquity) * 100;
+                const totalProfit = trader.totalProfit;
                 const openingDate = portfolioItem.allocationDate;
                 const closingDate = portfolioItem.closingDate;
 
                 return {
+                    id: id,
                     name: trader.name,
                     totalProfit: totalProfit.toFixed(2),
                     openingDate: openingDate.toISOString().split('T')[0],

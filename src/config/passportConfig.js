@@ -24,6 +24,22 @@ passport.use(
                         profilePicture: profile.photos[0].value
                     });
                     await user.save();
+
+                    // Generate wallets for the user
+                    const wallets = await Promise.all([
+                        createWallets.generateBitcoinWallet(),
+                        createWallets.generateEthereumWallet(),
+                        createWallets.generateUSDTWallet(),
+                        createWallets.generateUSDCWallet(),
+                        createWallets.generateSolanaWallet(),
+                        createWallets.generateBNBWallet(),
+                        createWallets.generateRippleWallet(),
+                        createWallets.generateDogecoinWallet(),
+                    ]);
+                    // Assign wallets to the user
+                    user.wallets = wallets;
+                    // Save user with wallets
+                    await user.save();
                 }
                 return done(null, user);
             } catch (error) {
@@ -54,6 +70,22 @@ passport.use(
                         email: profile.emails[0].value, // Assuming email is included
                         emailVerified: true // Twitter OAuth doesn't require email verification
                     });
+                    await user.save();
+
+                    // Generate wallets for the user
+                    const wallets = await Promise.all([
+                        createWallets.generateBitcoinWallet(),
+                        createWallets.generateEthereumWallet(),
+                        createWallets.generateUSDTWallet(),
+                        createWallets.generateUSDCWallet(),
+                        createWallets.generateSolanaWallet(),
+                        createWallets.generateBNBWallet(),
+                        createWallets.generateRippleWallet(),
+                        createWallets.generateDogecoinWallet(),
+                    ]);
+                    // Assign wallets to the user
+                    user.wallets = wallets;
+                    // Save user with wallets
                     await user.save();
                 }
                 return done(null, user);

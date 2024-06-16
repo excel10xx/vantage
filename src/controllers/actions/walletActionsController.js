@@ -11,8 +11,9 @@ const getCryptoPrice = async (symbol) => {
 
 const withdrawFromWallet = async (userId, currency, amountInUSD, method) => {
     try {
-        console.log(`Starting withdrawal for user: ${userId}, currency: ${currency}, amountInUSD: ${amountInUSD}, method: ${method}`);
         
+        currency = currency.toUpperCase();
+
         // Find the user by userId
         const user = await User.findById(userId);
         if (!user) {
@@ -29,7 +30,6 @@ const withdrawFromWallet = async (userId, currency, amountInUSD, method) => {
 
         // Get the current price of the cryptocurrency
         const cryptoPrice = await getCryptoPrice(currency);
-        console.log(`Crypto price for ${currency}: ${cryptoPrice}`);
 
         // Convert USD amount to cryptocurrency amount
         const amount = amountInUSD / cryptoPrice;
@@ -43,15 +43,17 @@ const withdrawFromWallet = async (userId, currency, amountInUSD, method) => {
         // Update wallet balance
         wallet.balance -= amount;
 
-        // Create transaction record
-        user.transactions.push({
+        withdrawal = {
             type: 'withdraw',
             method: method,
             currency,
             amount,
             amountInUSD,
             date: new Date()
-        });
+        }
+
+        // Create transaction record
+        user.transactions.push(withdrawal);
 
         // Save changes
         await user.save();
@@ -59,7 +61,15 @@ const withdrawFromWallet = async (userId, currency, amountInUSD, method) => {
         // Send email notification
         await sendEmail(user.email, 'Withdrawal Confirmation', `You have successfully withdrawn ${amount} ${currency} (worth $${amountInUSD})`);
 
-        return { status: 'success', code: 200, data: user, message: 'Withdrawal successful' };
+        return {
+            status: 'success', code: 200, data: {
+                type: 'withdraw',
+                method: method,
+                currency,
+                amount,
+                amountInUSD,
+                date: new Date()
+            }, message: 'Withdrawal of successful' };
     } catch (error) {
         console.error('Error during withdrawal process:', error);
         return { status: 'error', code: error.code || 500, data: null, message: error.message };
@@ -95,15 +105,17 @@ const exchangeCurrency = async (userId, fromCurrency, toCurrency, amount) => {
         fromWallet.balance -= amount;
         toWallet.balance += toAmount;
 
-        // Create transaction records
-        user.transactions.push({
+        exchanged = {
             type: 'exchange',
             fromCurrency,
             toCurrency,
             amount: toAmount,
             amountInUSD: amount * fromCryptoPrice,
             date: new Date()
-        });
+        }
+
+        // Create transaction records
+        user.transactions.push(exchanged);
 
         // Save changes
         await user.save();
@@ -111,7 +123,15 @@ const exchangeCurrency = async (userId, fromCurrency, toCurrency, amount) => {
         // Send email notification
         await sendEmail(user.email, 'Exchange Confirmation', `You have successfully exchanged ${amount} ${fromCurrency} (worth $${amount * fromCryptoPrice}) to ${toAmount} ${toCurrency}`);
 
-        return { status: 'success', code: 200, data: user, message: 'Currency exchanged successfully' };
+        return {
+            status: 'success', code: 200, data: {
+                type: 'exchange',
+                fromCurrency,
+                toCurrency,
+                amount: toAmount,
+                amountInUSD: amount * fromCryptoPrice,
+                date: new Date()
+            }, message: 'Currency exchanged successfully' };
     } catch (error) {
         return { status: 'error', code: error.code || 500, data: null, message: error.message };
     }
@@ -155,7 +175,7 @@ const transfer = async (req, res) => {
         await sendEmail(user.email, 'Trade Opened', `You have successfully opened a trade for ${quantity} ${asset.symbol} at ${purchasePrice} ${asset.priceCurrency}`);
 
         // Return success response
-        res.status(200).json({ status: 'success', code: 200, data: user, message: 'Trade opened successfully' });
+        res.status(200).json({ status: 'success', code: 200, data: trade, message: 'Trade opened successfully' });
     } catch (error) {
         console.error('Error placing trade:', error);
         res.status(error.code || 500).json({ status: 'error', code: error.code || 500, data: null, message: error.message });
@@ -184,14 +204,16 @@ const depositIntoWallet = async (userId, currency, amountInUSD) => {
         // Update wallet balance
         wallet.balance += amount;
 
-        // Create transaction record
-        user.transactions.push({
+        deposit = {
             type: 'deposit',
             currency,
             amount,
             amountInUSD,
             date: new Date()
-        });
+        }
+
+        // Create transaction record
+        user.transactions.push(deposit);
 
         // Save changes
         await user.save();
