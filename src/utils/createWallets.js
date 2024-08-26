@@ -1,99 +1,180 @@
-const cw = require('crypto-wallets')
-const rippleKeypairs = require('ripple-keypairs')
-const web3 = require('@solana/web3.js')
-const { Mnemonic } = require('cardano-wallet-js');
+require('dotenv').config();
 
 // Bitcoin
-const generateBitcoinWallet = () => {
-    wallet = cw.generateWallet("BTC")
-    wallet.chain = "Bitcoin Chain"
-    wallet.currency = "BTC"
-    return wallet
-};
+const getBitcoinWallet = () => {
+    const address = process.env.BITCOIN_ADDRESS;
 
-//Ethereum
-const generateEthereumWallet = () => {
-    wallet = cw.generateWallet("ETH")
-    wallet.chain = "ERC-20 Chain"
-    wallet.currency = "ETH"
-    return wallet
-};
-
-// USDT
-const generateUSDTWallet = () => {
-    wallet = cw.generateWallet("ETH")
-    wallet.chain = "ERC-20 Chain"
-    wallet.currency = "USDT"
-    return wallet
-};
-
-// USDC
-const generateUSDCWallet = () => {
-    wallet = cw.generateWallet("ETH")
-    wallet.chain = "ERC-20 Chain"
-    wallet.currency = "USDC"
-    return wallet
-};
-
-// Solana
-const generateSolanaWallet = () => {
-    const keypair = web3.Keypair.generate();
-    const publicKey = keypair.publicKey.toBase58();
-    const secretKey = keypair.secretKey;
-
-    // Convert the secret key array to hexadecimal string
-    const hexString = secretKey.reduce((acc, curr) => {
-        // Convert each integer to its hexadecimal representation
-        const hex = curr.toString(16).padStart(2, '0');
-        return acc + hex;
-    }, '');
-
-    return {
-        address: publicKey,
-        privateKey: hexString.toUpperCase(),
-        chain: "Solana",
-        currency: "SOL"
-    };
-};
-
-// BNB
-const generateBNBWallet = () => {
-    wallet = cw.generateWallet("ETH")
-    wallet.chain = "ERC-20 Chain"
-    wallet.currency = "BNB"
-    return wallet
-};
-
-// Ripple
-const generateRippleWallet = () => {
-    const keypair = rippleKeypairs.deriveKeypair(rippleKeypairs.generateSeed());
-    const address = rippleKeypairs.deriveAddress(keypair.publicKey);
+    if (!address) {
+        throw new Error('BITCOIN_ADDRESS environment variable not set.');
+    }
 
     return {
         address: address,
-        privateKey: keypair.privateKey,
-        address: keypair.publicKey,
-        chain: "XRP Ledger",
-        currency: "XRP"
+        chain: 'Bitcoin',
+        currency: 'BTC'
     };
 };
 
-// DogeCoin
-const generateDogecoinWallet = () => {
-    wallet = cw.generateWallet("DOGE")
-    wallet.chain = "Litecoin"
-    wallet.currency = "DOGE"
-    return wallet
+// Ethereum
+const getEthereumWallet = () => {
+    const address = process.env.ETHEREUM_ADDRESS;
+
+    if (!address) {
+        throw new Error('ETHEREUM_ADDRESS environment variable not set.');
+    }
+
+    return {
+        address: address,
+        chain: 'Ethereum',
+        currency: 'ETH'
+    };
 };
 
+// USDT on Ethereum
+const getUSDTETHWallet = () => {
+    const address = process.env.USDT_ETH_ADDRESS;
+
+    if (!address) {
+        throw new Error('USDT_ETH_ADDRESS environment variable not set.');
+    }
+
+    return {
+        address: address,
+        chain: 'Ethereum',
+        currency: 'USDT'
+    };
+};
+
+// USDT on Tron
+const getUSDTTRONWallet = () => {
+    const address = process.env.USDT_TRON_ADDRESS;
+
+    if (!address) {
+        throw new Error('USDT_TRON_ADDRESS environment variable not set.');
+    }
+
+    return {
+        address: address,
+        chain: 'Tron',
+        currency: 'USDT'
+    };
+};
+
+// USDC on Ethereum
+const getUSDCETHWallet = () => {
+    const address = process.env.USDC_ETH_ADDRESS;
+
+    if (!address) {
+        throw new Error('USDC_ETH_ADDRESS environment variable not set.');
+    }
+
+    return {
+        address: address,
+        chain: 'Ethereum',
+        currency: 'USDC'
+    };
+};
+
+// USDC on Binance Smart Chain
+const getUSDCBSCWallet = () => {
+    const address = process.env.USDC_BSC_ADDRESS;
+
+    if (!address) {
+        throw new Error('USDC_BSC_ADDRESS environment variable not set.');
+    }
+
+    return {
+        address: address,
+        chain: 'Binance Smart Chain',
+        currency: 'USDC'
+    };
+};
+
+// Solana
+const getSolanaWallet = () => {
+    const address = process.env.SOLANA_ADDRESS;
+
+    if (!address) {
+        throw new Error('SOLANA_ADDRESS environment variable not set.');
+    }
+
+    return {
+        address: address,
+        chain: 'Solana',
+        currency: 'SOL'
+    };
+};
+
+// BNB on Binance Smart Chain
+const getBNBBSCWallet = () => {
+    const address = process.env.BNB_BSC_ADDRESS;
+
+    if (!address) {
+        throw new Error('BNB_BSC_ADDRESS environment variable not set.');
+    }
+
+    return {
+        address: address,
+        chain: 'Binance Smart Chain',
+        currency: 'BNB'
+    };
+};
+
+// BNB on Binance Chain
+const getBNBCHAINWallet = () => {
+    const address = process.env.BNB_CHAIN_ADDRESS;
+
+    if (!address) {
+        throw new Error('BNB_CHAIN_ADDRESS environment variable not set.');
+    }
+
+    return {
+        address: address,
+        chain: 'Binance Chain',
+        currency: 'BNB'
+    };
+};
+
+// Ripple
+const getRippleWallet = () => {
+    const address = process.env.RIPPLE_ADDRESS;
+
+    if (!address) {
+        throw new Error('RIPPLE_ADDRESS environment variable not set.');
+    }
+
+    return {
+        address: address,
+        chain: 'Ripple',
+        currency: 'XRP'
+    };
+};
+
+// Dogecoin
+const getDogecoinWallet = () => {
+    const address = process.env.DOGE_ADDRESS;
+
+    if (!address) {
+        throw new Error('DOGE_ADDRESS environment variable not set.');
+    }
+
+    return {
+        address: address,
+        chain: 'Dogecoin',
+        currency: 'DOGE'
+    };
+};
 
 module.exports = {
-    generateBitcoinWallet,
-    generateDogecoinWallet,
-    generateEthereumWallet,
-    generateUSDTWallet,
-    generateUSDCWallet,
-    generateSolanaWallet,
-    generateBNBWallet,
-    generateRippleWallet
+    getBitcoinWallet,
+    getEthereumWallet,
+    getUSDTETHWallet,
+    getUSDTTRONWallet,
+    getUSDCETHWallet,
+    getUSDCBSCWallet,
+    getSolanaWallet,
+    getBNBBSCWallet,
+    getBNBCHAINWallet,
+    getRippleWallet,
+    getDogecoinWallet
 };

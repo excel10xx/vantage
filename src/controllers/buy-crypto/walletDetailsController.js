@@ -1,9 +1,11 @@
 const User = require('../../models/userModel');
+const Admin = require('../../models/adminModel');
 
 async function getWalletDetails(req, res) {
     const userId = req.user.id;
-    let { currency } = req.params;
+    let { currency, chain} = req.params;
     currency = currency.toUpperCase();
+    chain = chain.toUpperCase()
     try {
         // Find the user by ID
         const user = await User.findById(userId);
@@ -11,20 +13,40 @@ async function getWalletDetails(req, res) {
             return res.status(404).json({ status: 'error', code: 404, data: null, message: 'User not found' });
         }
 
-        // Find the wallet for the given currency
-        const wallet = user.wallets.find(w => w.currency === currency);
+        // Find the admin wallet with the specified currency and chain
+        const admin = await Admin.findOne({ 'wallets.coin': currency, 'wallets.chainType': chain });
+        if (!admin) {
+            console.log('Admin wallet reference not found for the specified currency and chain');
+            throw { status: 'error', code: 404, data: null, message: 'Admin reference wallet not found' };
+        }
+
+        const adminWallet = admin.wallets.find(wallet =>
+            wallet.coin.toUpperCase() === currency && wallet.chainType.toUpperCase() === chain
+        );
+
+        if (!adminWallet) {
+            console.log('Admin wallet not found for the specified currency and chain');
+            throw { status: 'error', code: 404, data: null, message: 'Admin wallet not found' };
+        }
+
+        // Find the user's wallet that references the admin wallet
+        const wallet = user.wallets.find(wallet =>
+            wallet.adminWallet.toString() === adminWallet._id.toString()
+        );
+
         if (!wallet) {
-            return res.status(404).json({ status: 'error', code: 404, data: null, message: `No wallet found for currency: ${currency}` });
+            console.log('User wallet not found for the specified admin wallet');
+            throw { status: 'error', code: 404, data: null, message: 'User wallet not found' };
         }
 
         // Construct the wallet details response
         const walletDetails = {
-            network: wallet.chain,
+            network: adminWallet.chainType,
             wallet: {
-                image: wallet.logoPath,
-                currency: wallet.currency,
-                address: wallet.address,
-                chain: wallet.chain,
+                image: adminWallet.image,
+                currency: adminWallet.coin,
+                address: adminWallet.walletAddress,
+                chain: adminWallet.chainType,
                 balance: wallet.balance
             }
         };

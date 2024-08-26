@@ -1,7 +1,5 @@
 const jwt = require('jsonwebtoken');
 const User = require('../../models/userModel');
-const createWallets = require('../../utils/createWallets');
-require('dotenv').config();
 
 // Controller function to verify user by verification code
 const verifyUser = async (req, res) => {
@@ -23,21 +21,6 @@ const verifyUser = async (req, res) => {
 
         // Set user's emailVerified to true
         user.emailVerified = true;
-
-        // Generate wallets
-        const wallets = await Promise.all([
-            createWallets.generateBitcoinWallet(),
-            createWallets.generateEthereumWallet(),
-            createWallets.generateUSDTWallet(),
-            createWallets.generateUSDCWallet(),
-            createWallets.generateSolanaWallet(),
-            createWallets.generateBNBWallet(),
-            createWallets.generateRippleWallet(),
-            createWallets.generateDogecoinWallet(),
-        ]);
-
-        // Add generated wallets to user's wallet array
-        user.wallets = wallets;
 
         // Reset User Verification
         user.verificationCode = undefined;

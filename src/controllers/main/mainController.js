@@ -1,5 +1,6 @@
 const User = require('../../models/userModel');
 const Asset = require('../../models/assetsModel');
+const Admin = require('../../models/adminModel');
 const ExpertTrader = require('../../models/expertTraderModel');
 
 async function getAllUserDetails(req, res) {
@@ -28,6 +29,12 @@ async function getAllUserDetails(req, res) {
         // Calculate total balance
         const totalBalance = user.depositBalance + profitBalance;
 
+        // Fetch admin wallets to get the addresses and other details
+        const admin = await Admin.findOne().select('wallets');
+        if (!admin) {
+            return res.status(500).json({ status: 'error', code: 500, data: null, message: 'Admin wallets not found' });
+        }
+
         // Arrays to hold wallet balances and total equity
         const walletBalances = [];
         let totalWalletEquityUSD = 0;
@@ -36,26 +43,34 @@ async function getAllUserDetails(req, res) {
         const cryptoAssets = await Asset.find({ type: 'cryptocurrency' });
 
         // Calculate and format balances for each wallet
-        for (const wallet of user.wallets) {
-            // Exclude the privateKey field
-            const { privateKey, ...walletWithoutPrivateKey } = wallet.toObject();
+        for (const userWallet of user.wallets) {
+            // Find the corresponding admin wallet
+            const adminWallet = admin.wallets.id(userWallet.adminWallet);
+            if (!adminWallet) {
+                return res.status(400).json({ status: 'error', code: 400, data: null, message: `Admin wallet not found for ${userWallet.currency}` });
+            }
 
             // Find the asset with the same symbol as the wallet's currency
-            const asset = cryptoAssets.find(asset => asset.symbol === wallet.currency);
+            const asset = cryptoAssets.find(asset => asset.symbol === adminWallet.coin);
             if (!asset) {
-                return res.status(400).json({ status: 'error', code: 400, data: null, message: `No price found for ${wallet.currency}` });
+                return res.status(400).json({ status: 'error', code: 400, data: null, message: `No price found for ${adminWallet.coin}` });
             }
 
             // Calculate amount in USD
-            const amountUSD = wallet.balance * asset.price;
+            const amountUSD = userWallet.balance * asset.price;
             totalWalletEquityUSD += amountUSD;
 
             // Add wallet balance to the array
             walletBalances.push({
-                wallet: walletWithoutPrivateKey,
-                amountInCoin: wallet.balance,
+                wallet: {
+                    currency: adminWallet.coin,
+                    address: adminWallet.walletAddress,
+                    chainType: adminWallet.chainType,
+                    image: adminWallet.image
+                },
+                amountInCoin: userWallet.balance,
                 amountInUSD: amountUSD,
-                pending: wallet.pending
+                pending: userWallet.pending
             });
         }
 

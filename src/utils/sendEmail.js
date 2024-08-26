@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const ejs = require('ejs');
+const path = require('path');
 
 const sendEmail = async (to, subject, text) => {
     try {
@@ -16,12 +18,24 @@ const sendEmail = async (to, subject, text) => {
             }
         });
 
+        // Combine subject and text into one object to pass to the EJS template
+        const emailBody = {
+            subject, // shorthand for subject: subject
+            text,    // shorthand for text: text
+        };
+
+        // Render EJS template with dynamic data
+        const htmlContent = await ejs.renderFile(
+            path.join(__dirname, `../emails/vantage.ejs`),
+            emailBody  // Pass the combined data object
+        );
+
         // Send mail with defined transport object
         await transporter.sendMail({
             from: '"Dev Test Vantage Margin" <emmanuelihuomascholarship@gmail.com>',
             to,
-            subject,
-            text
+            subject: emailBody.subject, // set email subject
+            html: htmlContent,          // set email content
         });
 
         console.log('Email sent successfully');

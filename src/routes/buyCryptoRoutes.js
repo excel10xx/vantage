@@ -4,6 +4,6 @@ const router = express.Router();
 const { getWalletDetails } = require('../controllers/buy-crypto/walletDetailsController');
 
 
-router.get('/:currency', authenticate, getWalletDetails);
+router.get('/:currency/:chain', authenticate, getWalletDetails);
 
 module.exports = router;

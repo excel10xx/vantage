@@ -27,6 +27,9 @@ const followCopyTrader = async (req, res) => {
             throw { status: 'error', code: 400, data: null, message: 'You are already following this trader with an active portfolio. Please close your current portfolio before following again.' };
         }
 
+        // subtract the trade balance back to the user's total balance
+        user.totalBalance -= amount;
+
 
         // Create a new copy trading portfolio
         const portfolio = {
@@ -104,6 +107,9 @@ const stopFollowCopyTrader = async (req, res) => {
             trader.followers.pull(userId);
             await trader.save();
         }
+
+        // Add the trade balance back to the user's total balance
+        user.totalBalance += user.copyTradingPortfolio[portfolioIndex].settledEquity;
 
         // Save changes to the user
         await user.save();

@@ -18,7 +18,18 @@ const updateKYC = async (userId, kycData) => {
         const user = await User.findById(userId);
         if (!user) throw new Error('User not found');
 
+        // Check if kycData is not null or undefined
+        if (!kycData || typeof kycData !== 'object') {
+            throw new Error('Invalid KYC data provided');
+        }
+
+        // Initialize the KYC field if it doesn't exist
+        if (!user.kyc) {
+            user.kyc = {};
+        }
+
         // Update KYC details
+        console.log(user.loginHistory)
         Object.assign(user.kyc, kycData);
 
         await user.save();

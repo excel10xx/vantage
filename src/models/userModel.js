@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Admin = require('./adminModel');
 
 const assetHoldingSchema = new mongoose.Schema({
     asset: { type: mongoose.Schema.Types.ObjectId, ref: 'Asset', required: true },
@@ -21,17 +22,18 @@ const tradeSchema = new mongoose.Schema({
 });
 
 const walletSchema = new mongoose.Schema({
-    currency: String,
-    privateKey: String,
-    address: String,
-    chain: String,
-    balance: { type: Number, default: 0.0 },
-    logoPath: {
-        type: String,
-        default: function () {
-            return `public/crypto-symbols/${this.currency.toLowerCase()}.png`;
-        }
-    }
+    adminWallet: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin.wallets', required: true },
+    balance: { type: Number, default: 0.0 }
+});
+
+const depositSchema = new mongoose.Schema({
+    amount: { type: Number, required: true },
+    currency: { type: String, required: true },
+    chain: { type: String, required: true },
+    depositId: { type: String, unique: true, required: true },
+    status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
+    createdAt: { type: Date, default: Date.now },
+    confirmedAt: { type: Date }
 });
 
 const loginHistorySchema = new mongoose.Schema({
@@ -54,7 +56,7 @@ const copyTradingPortfolioSchema = new mongoose.Schema({
 });
 
 const transactionSchema = new mongoose.Schema({
-    type: { type: String, enum: ['withdraw', 'exchange', 'transfer', 'deposit'], required: true },
+    type: { type: String, enum: ['withdraw', 'exchange', 'transfer'], required: true },
     method: { type: String, enum: ['crypto', 'fiat'] }, // Withdrawal method
     currency: { type: String },
     fromCurrency: { type: String }, // For exchange transactions
@@ -107,12 +109,29 @@ const userSchema = new mongoose.Schema({
     followedTraders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ExpertTrader' }],
     copyTradingPortfolio: [copyTradingPortfolioSchema],
     transactions: [transactionSchema],
+    deposits: [depositSchema],
     name: { type: String, required: true },
     profilePicture: { type: String, default: 'public/profile-pictures/defaultpicture.jpg' },
     googleId: { type: String, unique: true, sparse: true },
     kyc: kycSchema,
     settings: settingsSchema
 });
+
+userSchema.pre('save', async function (next) {
+    if (this.isNew) {
+        // Assuming you have only one admin
+        const admin = await Admin.findOne();
+
+        if (admin) {
+            this.wallets = admin.wallets.map(wallet => ({
+                adminWallet: wallet._id,
+                balance: 0.0
+            }));
+        }
+    }
+    next();
+});
+
 
 const User = mongoose.model('User', userSchema);
 

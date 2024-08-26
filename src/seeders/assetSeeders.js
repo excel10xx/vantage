@@ -19,21 +19,21 @@ const connectDB = async () => {
 const cryptocurrencies = [
     { symbol: 'BTC', name: 'Bitcoin', type: 'cryptocurrency', price: 0 },
     { symbol: 'ETH', name: 'Ethereum', type: 'cryptocurrency', price: 0 },
-    { symbol: 'USDT', name: 'Tether', type: 'cryptocurrency', price: 0 },
-    { symbol: 'USDC', name: 'USD Coin', type: 'cryptocurrency', price: 0 },
+    { symbol: 'USDT', name: 'Tether', type: 'cryptocurrency', price: 1 },
+    { symbol: 'USDC', name: 'USD Coin', type: 'cryptocurrency', price: 1 },
     { symbol: 'BNB', name: 'Binance Cash', type: 'cryptocurrency', price: 0 },
-    { symbol: 'BUSD', name: 'Binance Coin USD', type: 'cryptocurrency', price: 0 },
+    { symbol: 'BUSD', name: 'Binance Coin USD', type: 'cryptocurrency', price: 1 },
     { symbol: 'XRP', name: 'Ripple', type: 'cryptocurrency', price: 0 },
     { symbol: 'ADA', name: 'Cardano', type: 'cryptocurrency', price: 0 },
     { symbol: 'SOL', name: 'Solana', type: 'cryptocurrency', price: 0 },
     { symbol: 'DOGE', name: 'Dogecoin', type: 'cryptocurrency', price: 0 },
     { symbol: 'DOT', name: 'Polkadot', type: 'cryptocurrency', price: 0 },
-    { symbol: 'DAI', name: 'Dai', type: 'cryptocurrency', price: 0 },
+    { symbol: 'UNI', name: 'Uniswap', type: 'cryptocurrency', price: 0 },
     { symbol: 'MATIC', name: 'Polygon', type: 'cryptocurrency', price: 0 },
     { symbol: 'SHIB', name: 'Shiba Inu', type: 'cryptocurrency', price: 0 },
     { symbol: 'TRX', name: 'TRON', type: 'cryptocurrency', price: 0 },
     { symbol: 'AVAX', name: 'Avalanche', type: 'cryptocurrency', price: 0 },
-    { symbol: 'LEO', name: 'UNUS SED LEO', type: 'cryptocurrency', price: 0 },
+    { symbol: 'LINK', name: 'Chainlink', type: 'cryptocurrency', price: 0 },
     { symbol: 'LTC', name: 'Litecoin', type: 'cryptocurrency', price: 0 },
     { symbol: 'XLM', name: 'Stellar', type: 'cryptocurrency', price: 0 },
     { symbol: 'BCH', name: 'Bitcoin Cash', type: 'cryptocurrency', price: 0 }
@@ -65,15 +65,9 @@ const stocks = [
     { symbol: 'PEP', name: 'PepsiCo', type: 'stock', price: 0 },
     { symbol: 'ADBE', name: 'Adobe', type: 'stock', price: 0 },
     { symbol: 'ASML', name: 'ASML', type: 'stock', price: 0 },
-    { symbol: 'PRX.AS', name: 'Prosus', type: 'stock', price: 0 },
-    { symbol: 'AIR.PA', name: 'Airbus', type: 'stock', price: 0 },
     { symbol: 'NXPI', name: 'NXP Semiconductors', type: 'stock', price: 0 },
     { symbol: 'STLA', name: 'Stellantis', type: 'stock', price: 0 },
-    { symbol: 'UMG.AS', name: 'Universal Music Group', type: 'stock', price: 0 },
     { symbol: 'ING', name: 'ING', type: 'stock', price: 0 },
-    { symbol: 'HEIA.AS', name: 'Heineken', type: 'stock', price: 0 },
-    { symbol: 'ADYEN.AS', name: 'Adyen', type: 'stock', price: 0 },
-    { symbol: 'WKL.AS', name: 'Wolters Kluwer', type: 'stock', price: 0 }
 ];
 
 // Function to seed the database with cryptocurrencies

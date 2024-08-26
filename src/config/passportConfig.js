@@ -25,21 +25,6 @@ passport.use(
                     });
                     await user.save();
 
-                    // Generate wallets for the user
-                    const wallets = await Promise.all([
-                        createWallets.generateBitcoinWallet(),
-                        createWallets.generateEthereumWallet(),
-                        createWallets.generateUSDTWallet(),
-                        createWallets.generateUSDCWallet(),
-                        createWallets.generateSolanaWallet(),
-                        createWallets.generateBNBWallet(),
-                        createWallets.generateRippleWallet(),
-                        createWallets.generateDogecoinWallet(),
-                    ]);
-                    // Assign wallets to the user
-                    user.wallets = wallets;
-                    // Save user with wallets
-                    await user.save();
                 }
                 return done(null, user);
             } catch (error) {
@@ -72,21 +57,9 @@ passport.use(
                     });
                     await user.save();
 
-                    // Generate wallets for the user
-                    const wallets = await Promise.all([
-                        createWallets.generateBitcoinWallet(),
-                        createWallets.generateEthereumWallet(),
-                        createWallets.generateUSDTWallet(),
-                        createWallets.generateUSDCWallet(),
-                        createWallets.generateSolanaWallet(),
-                        createWallets.generateBNBWallet(),
-                        createWallets.generateRippleWallet(),
-                        createWallets.generateDogecoinWallet(),
-                    ]);
-                    // Assign wallets to the user
-                    user.wallets = wallets;
-                    // Save user with wallets
-                    await user.save();
+                    // Fetch admin wallets
+                    const admin = await Admin.findOne();
+
                 }
                 return done(null, user);
             } catch (error) {

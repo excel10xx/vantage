@@ -8,6 +8,7 @@ const MongoStore = require('connect-mongo');
 require('dotenv').config();
 require('./config/passportConfig');
 
+const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/authRoutes');
 const mainRoutes = require('./routes/mainRoutes');
 const depositRoutes = require('./routes/buyCryptoRoutes');
@@ -17,8 +18,9 @@ const tradeMainRoutes = require('./routes/tradeMainRoutes');
 const getUserCopyTradingData = require('./routes/copyTradingPortfolioRoutes');
 const getCopyTradingExperts = require('./routes/copyTradingRatingsRoute');
 const actionsRoutes = require('./routes/actionsRoute');
-const kycRoutes = require('./routes/kycRoutes'); // Include KYC routes
-const settingsRoutes = require('./routes/settingsRoutes'); // Include settings routes
+const kycRoutes = require('./routes/kycRoutes'); 
+const settingsRoutes = require('./routes/settingsRoutes'); 
+const clientContentRoutes = require('./routes/contentRoutes');
 const path = require('path');
 const app = express();
 
@@ -68,9 +70,13 @@ app.use('/api/copytrading/portfolio', getUserCopyTradingData);
 app.use('/api/copytrading/ratings', getCopyTradingExperts);
 app.use('/api/kyc', kycRoutes); // Include KYC routes
 app.use('/api/settings', settingsRoutes); // Include settings routes
+app.use('/api/content', clientContentRoutes);
 
 //POST Routes
 app.use('/api/actions', actionsRoutes);
+
+//Admin Routes
+app.use('/api/admin', adminRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

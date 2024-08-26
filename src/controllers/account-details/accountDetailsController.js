@@ -1,9 +1,13 @@
 const User = require('../../models/userModel');
 const Asset = require('../../models/assetsModel');
+const Admin = require('../../models/adminModel');
 
 async function getCryptoAccountDetails(req, res) {
     const userId = req.user.id;
-    const { cryptocurrency } = req.params;
+    let { cryptocurrency, chain } = req.params;
+
+    cryptocurrency = cryptocurrency.toUpperCase();
+    chain = chain.toUpperCase();
 
     try {
         // Find the user by ID
@@ -12,11 +16,33 @@ async function getCryptoAccountDetails(req, res) {
             return res.status(404).json({ status: 'error', code: 404, data: null, message: 'User not found' });
         }
 
-        // Find the wallet for the specified cryptocurrency
-        const wallet = user.wallets.find(wallet => wallet.currency === cryptocurrency.toUpperCase());
-        if (!wallet) {
-            return res.status(404).json({ status: 'error', code: 404, data: null, message: 'Wallet for the specified cryptocurrency not found' });
+        // Find the admin wallet with the specified currency and chain
+        const admin = await Admin.findOne({ 'wallets.coin': cryptocurrency, 'wallets.chainType': chain});
+        if (!admin) {
+            console.log('Admin wallet reference not found for the specified currency and chain');
+            throw { status: 'error', code: 404, data: null, message: 'Admin reference wallet not found' };
         }
+
+        const adminWallet = admin.wallets.find(wallet =>
+            wallet.coin.toUpperCase() === cryptocurrency && wallet.chainType.toUpperCase() === chain
+        );
+
+        if (!adminWallet) {
+            console.log('Admin wallet not found for the specified currency and chain');
+            throw { status: 'error', code: 404, data: null, message: 'Admin wallet not found' };
+        }
+
+        // Find the user's wallet that references the admin wallet
+        const wallet = user.wallets.find(wallet =>
+            wallet.adminWallet.toString() === adminWallet._id.toString()
+        );
+
+        if (!wallet) {
+            console.log('User wallet not found for the specified admin wallet');
+            throw { status: 'error', code: 404, data: null, message: 'User wallet not found' };
+        }
+
+
 
         // Fetch the current price for the specified cryptocurrency
         const asset = await Asset.findOne({ symbol: cryptocurrency.toUpperCase() });

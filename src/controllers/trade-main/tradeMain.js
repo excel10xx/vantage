@@ -1,5 +1,6 @@
 const User = require('../../models/userModel');
 const Asset = require('../../models/assetsModel');
+const Admin = require('../../models/adminModel');
 
 async function getMarketData(req, res) {
     const userId = req.user.id;
@@ -14,7 +15,11 @@ async function getMarketData(req, res) {
     } else {
         return res.status(400).json({ status: 'error', code: 400, data: null, message: 'Invalid market type' });
     }
+    let chain = "BTC"
     conversionCurrency = marketType.endsWith('usdt') ? 'USDT' : 'BTC';
+    if (conversionCurrency === "USDT") {
+        chain = "TRON"
+    };
 
     try {
         // Fetch the user by ID and populate relevant data
@@ -37,10 +42,33 @@ async function getMarketData(req, res) {
         let positions = [];
 
         // Process data for wallets
-        const wallet = user.wallets.find(wallet => wallet.currency === conversionCurrency.toUpperCase());
-        if (!wallet) {
-            return res.status(404).json({ status: 'error', code: 404, data: null, message: `Wallet for ${conversionCurrency} not found` });
+        conversionCurrency.toUpperCase()
+        // Find the admin wallet with the specified currency and chain
+        const admin = await Admin.findOne({ 'wallets.coin': conversionCurrency, 'wallets.chainType': chain });
+        if (!admin) {
+            console.log('Admin wallet reference not found for the specified currency and chain');
+            throw { status: 'error', code: 404, data: null, message: 'Admin reference wallet not found' };
         }
+
+        const adminWallet = admin.wallets.find(wallet =>
+            wallet.coin.toUpperCase() === conversionCurrency && wallet.chainType.toUpperCase() === chain
+        );
+
+        if (!adminWallet) {
+            console.log('Admin wallet not found for the specified currency and chain');
+            throw { status: 'error', code: 404, data: null, message: 'Admin wallet not found' };
+        }
+
+        // Find the user's wallet that references the admin wallet
+        const wallet = user.wallets.find(wallet =>
+            wallet.adminWallet.toString() === adminWallet._id.toString()
+        );
+
+        if (!wallet) {
+            console.log('User wallet not found for the specified admin wallet');
+            throw { status: 'error', code: 404, data: null, message: 'User wallet not found' };
+        }
+
 
         let balanceInConversionCurrency = wallet.balance;
         const accountMargin = balanceInConversionCurrency * conversionPrice;
