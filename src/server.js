@@ -73,7 +73,7 @@ app.use('/api/settings', settingsRoutes); // Include settings routes
 app.use('/api/content', clientContentRoutes);
 
 //POST Routes
-app.use('/api/actions', actionsRoutes);
+app.use('', actionsRoutes);
 
 //Admin Routes
 app.use('/api/admin', adminRoutes);

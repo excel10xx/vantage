@@ -20,7 +20,6 @@ const getCurrentAssetPrice = async (symbol) => {
 const withdrawFromWallet = async (userId, currency, chain, amountInUSD, method) => {
     try {
         currency = currency.toUpperCase();
-        chain = chain.toUpperCase();
 
         // Find the user by userId
         const user = await User.findById(userId);
@@ -29,46 +28,52 @@ const withdrawFromWallet = async (userId, currency, chain, amountInUSD, method) 
             throw { status: 'error', code: 404, data: null, message: 'User not found' };
         }
 
-        // Find the admin wallet with the specified currency and chain
-        const admin = await Admin.findOne({ 'wallets.coin': currency, 'wallets.chainType': chain });
-        if (!admin) {
-            console.log('Admin wallet reference not found for the specified currency and chain');
-            throw { status: 'error', code: 404, data: null, message: 'Admin reference wallet not found' };
+        if (!chain) {
+
+            chain = chain.toUpperCase();
+
+            // Find the admin wallet with the specified currency and chain
+            const admin = await Admin.findOne({ 'wallets.coin': currency, 'wallets.chainType': chain });
+            if (!admin) {
+                console.log('Admin wallet reference not found for the specified currency and chain');
+                throw { status: 'error', code: 404, data: null, message: 'Admin reference wallet not found' };
+            }
+
+            const adminWallet = admin.wallets.find(wallet =>
+                wallet.coin.toUpperCase() === currency && wallet.chainType.toUpperCase() === chain
+            );
+
+            if (!adminWallet) {
+                console.log('Admin wallet not found for the specified currency and chain');
+                throw { status: 'error', code: 404, data: null, message: 'Admin wallet not found' };
+            }
+
+            // Find the user's wallet that references the admin wallet
+            const userWallet = user.wallets.find(wallet =>
+                wallet.adminWallet.toString() === adminWallet._id.toString()
+            );
+
+            if (!userWallet) {
+                console.log('User wallet not found for the specified admin wallet');
+                throw { status: 'error', code: 404, data: null, message: 'User wallet not found' };
+            }
+
+            // Get the current price of the cryptocurrency
+            const cryptoPrice = await getCryptoPrice(currency);
+
+            // Convert USD amount to cryptocurrency amount
+            const amount = amountInUSD / cryptoPrice;
+
+            // Check if the user has sufficient balance
+            if (userWallet.balance < amount) {
+                console.log('Insufficient balance');
+                throw { status: 'error', code: 400, data: null, message: 'Insufficient balance' };
+            }
+
+            // Update wallet balance
+            userWallet.balance -= amount;
         }
-
-        const adminWallet = admin.wallets.find(wallet =>
-            wallet.coin.toUpperCase() === currency && wallet.chainType.toUpperCase() === chain
-        );
-
-        if (!adminWallet) {
-            console.log('Admin wallet not found for the specified currency and chain');
-            throw { status: 'error', code: 404, data: null, message: 'Admin wallet not found' };
-        }
-
-        // Find the user's wallet that references the admin wallet
-        const userWallet = user.wallets.find(wallet =>
-            wallet.adminWallet.toString() === adminWallet._id.toString()
-        );
-
-        if (!userWallet) {
-            console.log('User wallet not found for the specified admin wallet');
-            throw { status: 'error', code: 404, data: null, message: 'User wallet not found' };
-        }
-
-        // Get the current price of the cryptocurrency
-        const cryptoPrice = await getCryptoPrice(currency);
-
-        // Convert USD amount to cryptocurrency amount
-        const amount = amountInUSD / cryptoPrice;
-
-        // Check if the user has sufficient balance
-        if (userWallet.balance < amount) {
-            console.log('Insufficient balance');
-            throw { status: 'error', code: 400, data: null, message: 'Insufficient balance' };
-        }
-
-        // Update wallet balance
-        userWallet.balance -= amount;
+        
 
         // Prepare the withdrawal transaction
         const withdrawal = {

@@ -60,6 +60,51 @@ async function getWalletDetails(req, res) {
     }
 }
 
+// Get all coins and their chains, or just chains for a specific coin
+const getCoinsAndChains = async (req, res) => {
+    const { coin } = req.query;  // Access the query parameter for coin
+
+    try {
+        // Find all admin wallets (assuming all wallets are under one admin)
+        const admin = await Admin.findOne().select('wallets');
+
+        if (!admin || !admin.wallets.length) {
+            return res.status(404).json({ status: 'fail', message: 'No wallets found' });
+        }
+
+        // If a coin is provided, filter the wallets to return only chains for that coin
+        if (coin) {
+            const filteredWallets = admin.wallets.filter(wallet => wallet.coin.toLowerCase() === coin.toLowerCase());
+
+            if (!filteredWallets.length) {
+                return res.status(404).json({ status: 'fail', message: `No chains found for coin: ${coin}` });
+            }
+
+            // Return only the chains for the specific coin
+            const chainsForCoin = filteredWallets.map(wallet => ({
+                chainType: wallet.chainType,
+                walletAddress: wallet.walletAddress,
+            }));
+
+            return res.status(200).json({ status: 'success', data: { coin, chains: chainsForCoin } });
+        }
+
+        // If no coin is provided, return all coins and their respective chains
+        const allCoinsAndChains = admin.wallets.map(wallet => ({
+            coin: wallet.coin,
+            chainType: wallet.chainType,
+            walletAddress: wallet.walletAddress,
+        }));
+
+        res.status(200).json({ status: 'success', data: allCoinsAndChains });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: 'Server error', error: error.message });
+    }
+};
+
+module.exports = { getCoinsAndChains };
+
 module.exports = {
-    getWalletDetails
+    getWalletDetails,
+    getCoinsAndChains
 };
