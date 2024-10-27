@@ -36,9 +36,9 @@ const openTrade = async (req, res) => {
         // Create a new trade
         const trade = {
             asset: assetId,
-            quantity,
+            quantity: quantity,
             purchasePrice : currentPrice,
-            side,
+            side: side,
             status: 'opened',
             purchaseDate: new Date()
         };
