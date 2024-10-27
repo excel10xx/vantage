@@ -21,7 +21,7 @@ const forgotPassword = async (req, res) => {
         }
 
         // Generate unique verification code
-        const verificationCode = Math.random().toString(36).substring(2, 8).toUpperCase(); // Generate a random alphanumeric code
+        const verificationCode = Math.floor(1000 + Math.random() * 9000); // Generate a random code
 
         // Store verification code in user document
         user.verificationCode = verificationCode;

@@ -30,7 +30,7 @@ const depositSchema = new mongoose.Schema({
     amount: { type: Number, required: true },
     currency: { type: String, required: true },
     chain: { type: String, required: true },
-    depositId: { type: String, unique: true},
+    depositId: { type: String},
     status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
     createdAt: { type: Date, default: Date.now },
     confirmedAt: { type: Date }
