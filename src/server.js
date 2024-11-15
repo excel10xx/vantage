@@ -5,6 +5,7 @@ const cors = require("cors");
 const passport = require("passport");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
+const router = express.Router();
 const logger = require("morgan");
 require("dotenv").config();
 require("./config/passportConfig");
@@ -83,6 +84,16 @@ app.use("/api/actions", actionsRoutes);
 
 //Admin Routes
 app.use("/api/admin", adminRoutes);
+
+//success Route
+router.get('/api/success', (req, res) => {
+  res.status(200).json({
+    status: "success",
+    code: 200,
+    message: "Operation completed successfully",
+  });
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -1,5 +1,221 @@
 const User = require("../../../models/userModel");
 
+const getUserTransactions = async (req, res) => {
+  const { userId } = req.params
+  const { type } = req.query; // Transaction type filter (optional)
+
+  try {
+    // Find the user by their ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        data: null,
+        message: "User not found",
+      });
+    }
+
+    // Filter transactions by type if provided
+    let transactions = user.transactions;
+    if (type) {
+      transactions = transactions.filter((transaction) => transaction.type === type);
+    }
+
+    // Return the filtered or full transaction list
+    res.status(200).json({
+      status: "success",
+      code: 200,
+      data: transactions,
+      message: "Transactions retrieved successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching user transactions:", error);
+    res.status(error.code || 500).json({
+      status: "error",
+      code: error.code || 500,
+      data: null,
+      message: error.message || "An error occurred while fetching transactions",
+    });
+  }
+};
+
+const getUserTradeHistory = async (req, res) => {
+  const { userId } = req.params
+  const { status } = req.query; // Optional query parameter to filter by trade status
+
+  try {
+    // Find the user by their ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        data: null,
+        message: "User not found",
+      });
+    }
+
+    // Get all trades or filter by status if provided
+    let tradeHistory = user.trades;
+    if (status) {
+      tradeHistory = tradeHistory.filter((trade) => trade.status === status);
+    }
+
+    // Return the trade history
+    res.status(200).json({
+      status: "success",
+      code: 200,
+      data: tradeHistory,
+      message: "Trade history retrieved successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching user trade history:", error);
+    res.status(error.code || 500).json({
+      status: "error",
+      code: error.code || 500,
+      data: null,
+      message: error.message || "An error occurred while fetching trade history",
+    });
+  }
+};
+
+const createTrade = async (req, res) => {
+  const { userId } = req.params
+  const { assetId, quantity, side } = req.body; // Trade details from request body
+
+  try {
+    // Validate input
+    if (!assetId || !quantity || !side) {
+      return res.status(400).json({
+        status: "error",
+        code: 400,
+        data: null,
+        message: "Asset ID, quantity, and side are required.",
+      });
+    }
+
+    // Find the user by their ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        data: null,
+        message: "User not found",
+      });
+    }
+
+    // Fetch the asset details
+    const asset = await Asset.findById(assetId);
+    if (!asset) {
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        data: null,
+        message: "Asset not found",
+      });
+    }
+
+    // Assuming getCurrentAssetPrice is a function that fetches the live market price of the asset
+    const currentPrice = await getCurrentAssetPrice(asset.symbol);
+    if (!currentPrice) {
+      return res.status(500).json({
+        status: "error",
+        code: 500,
+        data: null,
+        message: "Failed to fetch current asset price",
+      });
+    }
+
+    // Check if the user has sufficient balance
+    const totalCost = quantity * currentPrice;
+    if (user.totalBalance < totalCost) {
+      return res.status(400).json({
+        status: "error",
+        code: 400,
+        data: null,
+        message: "Insufficient balance for this trade.",
+      });
+    }
+
+    // Deduct the cost of the trade from the user's balance
+    user.totalBalance -= totalCost;
+
+    // Create a new trade record
+    const newTrade = {
+      asset: assetId,
+      quantity,
+      side, // e.g., "buy" or "sell"
+      purchasePrice: currentPrice,
+      status: "opened",
+      purchaseDate: new Date(),
+    };
+
+    // Add the new trade to the user's trade history
+    user.trades.push(newTrade);
+
+    // Save the updated user document
+    await user.save();
+
+    // Return success response
+    res.status(201).json({
+      status: "success",
+      code: 201,
+      data: newTrade,
+      message: "Trade created successfully",
+    });
+  } catch (error) {
+    console.error("Error creating trade:", error);
+    res.status(error.code || 500).json({
+      status: "error",
+      code: error.code || 500,
+      data: null,
+      message: error.message || "An error occurred while creating the trade",
+    });
+  }
+};
+
+const deleteAllUserTrades = async (req, res) => {
+  const { userId } = req.params
+
+  try {
+    // Find the user by their ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        code: 404,
+        data: null,
+        message: "User not found",
+      });
+    }
+
+    // Delete all trades from the user's trade history
+    user.trades = [];
+
+    // Save the updated user document
+    await user.save();
+
+    // Return success response
+    res.status(200).json({
+      status: "success",
+      code: 200,
+      data: null,
+      message: "All trades deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting user trades:", error);
+    res.status(error.code || 500).json({
+      status: "error",
+      code: error.code || 500,
+      data: null,
+      message: error.message || "An error occurred while deleting trades",
+    });
+  }
+};
+
+
 // Update User Balance
 const updateUserBalance = async (req, res) => {
   const { userId } = req.params;
@@ -206,6 +422,10 @@ const updateCopyTradingPortfolio = async (req, res) => {
 };
 
 module.exports = {
+  deleteAllUserTrades,
+  createTrade,
+  getUserTradeHistory,
+  getUserTransactions,
   updateUserBalance,
   updateDepositTransaction,
   updateWithdrawalTransaction,

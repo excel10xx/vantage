@@ -4,7 +4,7 @@ const { protect } = require('../middleware/protect');
 const { loginAdmin } = require('../controllers/admin/login');
 const { createWallet, getAllWallets, updateWallet, deleteWallet } = require('../controllers/admin/coins');
 const { getAllUsers, getUserById, updateUserName, updateUserEmail, updateUserProfilePicture, updateUserGoogleId } = require('../controllers/admin/users/userProfileController');
-const { updateUserBalance, updateDepositTransaction, updateWithdrawalTransaction, updateTradeHistory, updateCopyTradingPortfolio } = require('../controllers/admin/users/financialTradeController');
+const { deleteAllUserTrades, createTrade, getUserTradeHistory, getUserTransactions, updateUserBalance, updateDepositTransaction, updateWithdrawalTransaction, updateTradeHistory, updateCopyTradingPortfolio } = require('../controllers/admin/users/financialTradeController');
 const { createExpertTrader, getAllExpertTraders, getExpertTraderById, updateExpertTrader, deleteExpertTrader } = require('../controllers/admin/expertTrader');
 const { createArticle, updateArticle, deleteArticle, createCourse, updateCourse, deleteCourse, createPromoCode, updatePromoCode, deletePromoCode, } = require('../controllers/admin/content');
 
@@ -30,6 +30,10 @@ router.put('/users/:userId/profile-picture', protect, updateUserProfilePicture);
 router.put('/users/:userId/google-id', protect, updateUserGoogleId);
 
 // Finanicial Trade Routes
+router.post('/trades', protect, createTrade);
+router.get('/trades', protect, getUserTradeHistory);
+router.delete('/trades', protect, deleteAllUserTrades);
+router.get('/transactions', protect, getUserTransactions);
 router.put('/balance/:userId', protect, updateUserBalance);
 router.put('/deposits/:userId/:depositId', protect, updateDepositTransaction);
 router.put('/withdrawals/:userId/:transactionId', protect, updateWithdrawalTransaction);
