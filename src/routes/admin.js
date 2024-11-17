@@ -30,9 +30,9 @@ router.put('/users/:userId/profile-picture', protect, updateUserProfilePicture);
 router.put('/users/:userId/google-id', protect, updateUserGoogleId);
 
 // Finanicial Trade Routes
-router.post('/trades', protect, createTrade);
-router.get('/trades', protect, getUserTradeHistory);
-router.delete('/trades', protect, deleteAllUserTrades);
+router.post('/trades/:userId', protect, createTrade);
+router.get('/trades/:userId', protect, getUserTradeHistory);
+router.delete('/trades/:userId', protect, deleteAllUserTrades);
 router.get('/transactions', protect, getUserTransactions);
 router.put('/balance/:userId', protect, updateUserBalance);
 router.put('/deposits/:userId/:depositId', protect, updateDepositTransaction);

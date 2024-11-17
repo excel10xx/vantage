@@ -12,6 +12,8 @@ const loginAdmin = async (req, res) => {
         // Check if admin exists
         const admin = await Admin.findOne({ username });
 
+        console.log(admin.matchPassword(password))
+
         if (admin && (await admin.matchPassword(password))) {
             const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
                 expiresIn: process.env.JWT_EXPIRE,

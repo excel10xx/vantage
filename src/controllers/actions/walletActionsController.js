@@ -27,7 +27,6 @@ const withdrawFromWallet = async (
 ) => {
   try {
     currency = currency.toUpperCase();
-    // console.log(userId, currency, chain, amountInUSD, amount, method);
 
     // Find the user by userId
     const user = await User.findById(userId);
@@ -188,65 +187,71 @@ const exchangeCurrency = async (userId, fromCurrency, toCurrency, amount) => {
       };
     }
 
-    // Find a wallet with enough balance for the source currency
-    const fromWallet = user.wallets.find(
+    // Find the admin wallet for the destination currency
+    const fromAdminWallet = fromAdmin.wallets.find(
       (wallet) =>
-        wallet.coin.toUpperCase() === fromCurrency &&
-        wallet.balance >= amount
+        wallet.coin.toUpperCase() === fromCurrency 
     );
 
-    if (!fromWallet) {
-      console.log("No wallet with sufficient balance for the source currency");
+    if (!fromAdminWallet) {
+      console.log("No Admin wallets");
       throw {
         status: "error",
         code: 400,
         data: null,
-        message: "Insufficient balance in any wallet for the source currency",
+        message: "No Admin wallets",
       };
     }
 
-    // Find the corresponding admin wallet for the selected user wallet
-    const fromAdminWallet = fromAdmin.wallets.find(
-      (wallet) => wallet._id.toString() === fromWallet.adminWallet.toString()
+    // Find the corresponding user wallet for the selected admin
+    const fromWallet = user.wallets.find(
+      (wallet) => wallet.adminWallet.toString() === fromAdminWallet._id.toString()
     );
 
-    if (!fromAdminWallet) {
-      console.log("Admin wallet not found for the source currency");
+    if (!fromWallet) {
       throw {
         status: "error",
         code: 404,
         data: null,
-        message: "Admin wallet not found for the source currency",
+        message: "No from user wallet wallet",
       };
     }
 
-    // Find the target user wallet for the destination currency
-    const toWallet = user.wallets.find(
+    if (amount >= fromWallet.balance) {
+      return res.status(400).json({
+        status: "error",
+        code: 400,
+        data: null,
+        message: "Insufficient balance in the specified wallet.",
+      });
+    }
+
+    // Find the admin wallet for the destination currency
+    const toAdminWallet = toAdmin.wallets.find(
       (wallet) => wallet.coin.toUpperCase() === toCurrency
     );
 
-    if (!toWallet) {
-      console.log("User wallet not found for the target currency");
+    if (!toAdminWallet) {
+      console.log("No Admin wallets");
       throw {
         status: "error",
         code: 404,
         data: null,
-        message: "User wallet not found for the target currency",
+        message: "No Admin wallets",
       };
     }
 
-    // Find the corresponding admin wallet for the target user wallet
-    const toAdminWallet = toAdmin.wallets.find(
-      (wallet) => wallet._id.toString() === toWallet.adminWallet.toString()
+    // Find the corresponding user wallet for the selected admin
+    const toWallet = user.wallets.find(
+      (wallet) => wallet.adminWallet.toString() === toAdminWallet._id.toString()
     );
 
-    if (!toAdminWallet) {
-      console.log("Admin wallet not found for the target currency");
+    if (!toWallet) {
       throw {
         status: "error",
         code: 404,
         data: null,
-        message: "Admin wallet not found for the target currency",
+        message: "No to user wallet wallet",
       };
     }
 
@@ -308,11 +313,14 @@ const exchangeCurrency = async (userId, fromCurrency, toCurrency, amount) => {
 };
 
 const transfer = async (req, res) => {
-  const userId = req.user.id; // Get user ID from auth middleware
-  const { assetId, quantity, transferTo } = req.body;
+  const userId = req.user._id 
+  const { currency, amount, transferTo } = req.body;
+
 
   try {
-    // Validate transferTo parameter
+    const fromCurrency = currency.toUpperCase();
+
+    // Validate `transferTo` parameter
     if (!["global-market", "crypto-futures"].includes(transferTo)) {
       return res.status(400).json({
         status: "error",
@@ -322,77 +330,90 @@ const transfer = async (req, res) => {
       });
     }
 
-    // Find the user by their ID
+    // Find the user
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
         status: "error",
         code: 404,
         data: null,
-        message: "User not found",
+        message: "User not found.",
       });
     }
 
-    // Fetch the asset details
-    const asset = await Asset.findById(assetId);
-    if (!asset) {
-      return res.status(404).json({
+    const fromAdmin = await Admin.findOne({ "wallets.coin": fromCurrency });
+
+    if (!fromAdmin ) {
+      console.log("Admin wallet not found for the specified currency");
+      throw {
         status: "error",
         code: 404,
         data: null,
-        message: "Asset not found",
-      });
+        message: "Admin wallet not found",
+      };
     }
 
-    // Assuming getCurrentAssetPrice is a function that fetches the live market price of the asset
-    const currentPrice = await getCurrentAssetPrice(asset.symbol);
-    if (!currentPrice) {
-      return res.status(500).json({
+
+    // Find a wallet with enough balance for the source currency
+    const fromAdminWallet = fromAdmin.wallets.find(
+      (wallet) =>
+        wallet.coin.toUpperCase() === fromCurrency );
+
+    if (!fromAdminWallet) {
+      console.log("No Admin wallets");
+      throw {
         status: "error",
-        code: 500,
+        code: 400,
         data: null,
-        message: "Failed to fetch current asset price",
-      });
+        message: "No Admin wallets",
+      };
     }
 
-    // Calculate the total cost of the transfer
-    const totalCost = quantity * currentPrice;
+    // Find the user's wallet that references the admin wallet
+    const userWallet = user.wallets.find(
+      (wallet) => wallet.adminWallet.toString() === fromAdminWallet._id.toString() 
+    );
 
-    // Check if the user has sufficient balance
-    if (totalCost > user.totalBalance) {
+    if (!userWallet) {
       return res.status(400).json({
         status: "error",
         code: 400,
         data: null,
-        message: "Insufficient balance in your account.",
+        message: "No user wallet wallet.",
       });
     }
 
-    // Deduct the total cost from the user's balance
-    user.totalBalance -= totalCost;
+    if (amount >= userWallet.balance ) {
+      return res.status(400).json({
+        status: "error",
+        code: 400,
+        data: null,
+        message: "Insufficient balance in the specified wallet.",
+      });
+    }
 
-    // Store the transfer record
+    // Deduct the quantity from the wallet balance
+    userWallet.balance -= amount;
+
+    // Create a transfer record
     const transferRecord = {
-      asset: assetId,
-      quantity,
+      asset: currency,
+      quantity: amount,
       transferTo,
-      amountDeducted: totalCost,
-      transferDate: new Date(),
+      date: new Date(),
     };
 
     user.transfers = user.transfers || [];
     user.transfers.push(transferRecord);
 
-    // Save changes to the user
+    // Save the updated user document
     await user.save();
 
-    // Send email notification to the user (optional)
+    // Send email notification (optional)
     await sendEmail(
       user.email,
-      "Transfer Notification",
-      `You have successfully transferred ${quantity} ${asset.symbol} (worth ${totalCost.toFixed(
-        2
-      )}) to ${transferTo}.`
+      "Transfer Confirmation",
+      `You have successfully transferred ${amount} ${currency} to ${transferTo}.`
     );
 
     // Return success response
@@ -400,7 +421,7 @@ const transfer = async (req, res) => {
       status: "success",
       code: 200,
       data: transferRecord,
-      message: "Amount deducted and transfer record stored successfully",
+      message: "Transfer processed successfully and recorded.",
     });
   } catch (error) {
     console.error("Error processing transfer:", error);
@@ -408,10 +429,11 @@ const transfer = async (req, res) => {
       status: "error",
       code: error.code || 500,
       data: null,
-      message: error.message,
+      message: error.message || "An error occurred during the transfer process.",
     });
   }
 };
+
 
 // Deposit into wallet controller
 const depositIntoWallet = async (userId, amountInUSD, currency, chain) => {
