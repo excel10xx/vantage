@@ -8,15 +8,14 @@ const getCurrentAssetPrice = async (symbol) => {
 };
 
 const getUserTransactions = async (req, res) => {
-
-  const { userId, type } = req.query; 
+  const { userId, type } = req.query; // Fetch userId and type from query
 
   try {
-    let transactions;
+    let transactions = [];
 
     if (userId) {
-      // Fetch the user-specific transactions if userId is provided
-      const user = await User.findById(userId);
+      // Fetch the user's transactions if userId is provided
+      const user = await User.findById(userId).select("transactions name email");
       if (!user) {
         return res.status(404).json({
           status: "error",
@@ -26,11 +25,21 @@ const getUserTransactions = async (req, res) => {
         });
       }
 
-      transactions = user.transactions;
+      transactions = user.transactions.map((transaction) => ({
+        ...transaction.toObject(),
+        user: { id: user._id, name: user.name, email: user.email },
+      }));
     } else {
-      // Fetch all users' transactions if userId is not provided (admin access)
-      const allUsers = await User.find({}, "transactions"); // Fetch only the transactions field
-      transactions = allUsers.flatMap((user) => user.transactions); // Merge all transactions
+      // Fetch all users' transactions if userId is not provided
+      const allUsers = await User.find({}, "transactions name email"); // Only fetch necessary fields
+      allUsers.forEach((user) => {
+        user.transactions.forEach((transaction) => {
+          transactions.push({
+            ...transaction.toObject(),
+            user: { id: user._id, name: user.name, email: user.email },
+          });
+        });
+      });
     }
 
     // Filter transactions by type if provided
@@ -38,7 +47,7 @@ const getUserTransactions = async (req, res) => {
       transactions = transactions.filter((transaction) => transaction.type === type);
     }
 
-    // Return the filtered or full transaction list
+    // Return the transactions with user details
     res.status(200).json({
       status: "success",
       code: 200,
