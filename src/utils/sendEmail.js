@@ -6,7 +6,7 @@ const sendEmail = async (to, subject, text) => {
     try {
         // Create transporter
         const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
+            host: 'smtp.hostinger.com',
             port: 465,
             secure: true, // true for 465, false for other ports
             auth: {
@@ -32,7 +32,7 @@ const sendEmail = async (to, subject, text) => {
 
         // Send mail with defined transport object
         await transporter.sendMail({
-            from: '"Dev Test Vantage Margin" <emmanuelihuomascholarship@gmail.com>',
+            from: '"Vantage Margin" <support@vantagemargin.com>',
             to,
             subject: emailBody.subject, // set email subject
             html: htmlContent,          // set email content
