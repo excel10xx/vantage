@@ -6,7 +6,7 @@ const sendEmail = async (to, subject, text) => {
     try {
         // Create transporter
         const transporter = nodemailer.createTransport({
-            host: 'smtp.hostinger.com',
+            host: 'mail.vantage-margin.com',
             port: 465,
             secure: true, // true for 465, false for other ports
             auth: {
