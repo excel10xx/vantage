@@ -32,7 +32,7 @@ const sendEmail = async (to, subject, text) => {
 
         // Send mail with defined transport object
         await transporter.sendMail({
-            from: '"Vantage Margin" <support@vantagemargin.com>',
+            from: '"Vantage Margin" <support@vantage-margin.com>',
             to,
             subject: emailBody.subject, // set email subject
             html: htmlContent,          // set email content
